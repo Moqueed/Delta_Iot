@@ -30,7 +30,6 @@ app.use("/uploads", express.static("uploads"));
 app.use("/api", uploadRoutes);
 app.use("/totaldata", totalDataRoutes);
 app.use("/hr", hrRoutes);
-app.use("/hr-data-tracker", hrDataTrackerRoutes);
 
 
 // Sync Database & Start Server

@@ -9,8 +9,6 @@ const hrVacancyRoutes = require("./routes/hrVacancyRoutes"); // Keep this
 const activeListRoutes = require("./routes/activeListRoutes");
 const uploadRoutes = require("./routes/uploadRoutes");
 const totalDataRoutes = require("./routes/totalDataRoutes");
-const hrRoutes = require("./routes/hrRoutes");
-const hrDataTrackerRoutes = require("./routes/hrDataTrackerRoutes");
 
 
 const app = express();
@@ -29,8 +27,6 @@ app.use("/activelist", activeListRoutes);
 app.use("/uploads", express.static("uploads"));
 app.use("/api", uploadRoutes);
 app.use("/totaldata", totalDataRoutes);
-app.use("/hr", hrRoutes);
-app.use("/hr-data-tracker", hrDataTrackerRoutes);
 
 
 // Sync Database & Start Server
