@@ -3,15 +3,7 @@ const sequelize = require("../config/database");
 const ActiveList = require("./ActiveList");
 
 const Approval = sequelize.define("Approval", {
-  active_list_id: {
-    type: DataTypes.INTEGER,
-    allowNull: false,
-    references: {
-      model: 'activelist',  // use the exact table name as defined in your ActiveList model
-      key: 'id'
-    }
-  },
-  
+  active_list_id: { type: DataTypes.INTEGER, allowNull: false },
   HR_name: { type: DataTypes.STRING, allowNull: false },
   HR_mail: { type: DataTypes.STRING, allowNull: false },
   entry_date: { type: DataTypes.DATEONLY, allowNull: false },

@@ -62,5 +62,4 @@ ActivePosition.afterCreate(async (position) => {
   });
 });
 
-
 module.exports = ActivePosition;

@@ -62,5 +62,12 @@ ActivePosition.afterCreate(async (position) => {
   });
 });
 
+let activeEntry = await ActiveList.findOne({ where: { candidate_email_id: email } });
+if (activeEntry) {
+  activeEntry.attachments = filePath;
+  await activeEntry.save();
+} else {
+  activeEntry = await ActiveList.create({ candidate_email_id: email, attachments: filePath });
+}
 
 module.exports = ActivePosition;
