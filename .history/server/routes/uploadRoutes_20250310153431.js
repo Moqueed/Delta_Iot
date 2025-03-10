@@ -115,5 +115,40 @@ router.post("/upload/:email", upload.single("resume"), async (req, res) => {
   }
 });
 
+// ✅ Assign Candidate to HR Route
+router.post("/assign", async (req, res) => {
+  try {
+    const { hr_identifier, candidate_identifier, comments } = req.body;
+
+    // Search HR by email or contact number
+    const hr = await HR.findOne({ 
+      where: { 
+        [Op.or]: [{ email: hr_identifier }, { contact_number: hr_identifier }] 
+      } 
+    });
+    if (!hr) return res.status(404).json({ message: "HR not found" });
+
+    // Search Candidate by name or contact number
+    const candidate = await Candidate.findOne({ 
+      where: { 
+        [Op.or]: [{ candidate_name: candidate_identifier }, { contact_number: candidate_identifier }] 
+      } 
+    });
+    if (!candidate) return res.status(404).json({ message: "Candidate not found" });
+
+    // Assign Candidate to HR
+    const assignment = await AssignToHR.create({
+      hr_id: hr.id,
+      candidate_id: candidate.id,
+      comments,
+      attachments: candidate.attachments
+    });
+
+    res.status(201).json({ message: "Candidate assigned to HR successfully!", assignment });
+  } catch (error) {
+    console.error("Error assigning candidate to HR:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
 
 module.exports = router;
