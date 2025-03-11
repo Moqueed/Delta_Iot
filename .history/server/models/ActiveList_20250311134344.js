@@ -20,7 +20,6 @@ const ActiveList = sequelize.define("ActiveList", {
     unique: true, // Ensure a candidate appears only once in ActiveList
   },
   candidate_name: { type: DataTypes.STRING, allowNull: false },
-  candidate_email_id: { type: DataTypes.STRING, allowNull: false }, 
   position: { type: DataTypes.STRING, allowNull: false },
   department: { type: DataTypes.STRING, allowNull: false },
   progress_status: {
@@ -34,7 +33,7 @@ const ActiveList = sequelize.define("ActiveList", {
   },
   entry_date: { type: DataTypes.DATEONLY, allowNull: false, defaultValue: DataTypes.NOW },
 }, {
-  tableName: "activeList",
+  tableName: "ActiveList",
   timestamps: false,
 });
 

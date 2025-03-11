@@ -45,59 +45,29 @@ const Candidate = sequelize.define("Candidate", {
 
 // Function to map progress_status to TotalData status
 function mapStatus(progressStatus) {
-  if (!progressStatus) return "Master";
-
-  const normalizedStatus = progressStatus.trim().toLowerCase();
+  const normalizedStatus = progressStatus?.trim().toLowerCase();
 
   if (["joined"].includes(normalizedStatus)) return "Joined";
-  if (["offer released", "final discussion"].some(s => s.toLowerCase() === normalizedStatus)) return "About to Join";
-  if (["buffer", "hold"].some(s => s.toLowerCase() === normalizedStatus)) return "Buffer";
-  if (["rejected", "declined offer"].some(s => s.toLowerCase() === normalizedStatus)) return "Rejected";
+  if (["offer released", "final discussion"].includes(normalizedStatus)) return "About to Join";
+  if (["buffer", "hold"].includes(normalizedStatus)) return "Buffer";
+  if (["rejected", "declined offer"].includes(normalizedStatus)) return "Rejected";
 
   return "Master"; // Default category
 }
 
 
-
 // Hook to sync data after creating a candidate
 
 
-// Candidate.afterCreate(async (candidate) => {
-//   try {
-//     const TotalData = sequelize.models.TotalData;
-
-//     await TotalData.create({
-//       candidate_id: candidate.id,
-//       status: mapStatus(candidate.progress_status),
-//       count: 1,
-//     });
-
-//     const ActiveList = sequelize.models.ActiveList;
-//     await ActiveList.create({
-//       candidate_id: candidate.id,
-//       candidate_name: candidate.candidate_name,
-//       position: candidate.position,
-//       department: candidate.department,
-//       progress_status: candidate.progress_status || "Application Received", // ✅ Fix: Default Value
-//       status_date: candidate.status_date || new Date(), // ✅ Fix: Default Date
-//       entry_date: candidate.entry_date
-//     });
-
-//     console.log(`✅ TotalData & ActiveList entry created for Candidate: ${candidate.candidate_name}`);
-//   } catch (error) {
-//     console.error("❌ Error creating TotalData or ActiveList entry:", error);
-//   }
-// });
-
-Candidate.afterCreate(async (candidate, options) => {
-  const transaction = await sequelize.transaction();
+Candidate.afterCreate(async (candidate) => {
   try {
     const TotalData = sequelize.models.TotalData;
+
     await TotalData.create({
       candidate_id: candidate.id,
       status: mapStatus(candidate.progress_status),
       count: 1,
-    }, { transaction });
+    });
 
     const ActiveList = sequelize.models.ActiveList;
     await ActiveList.create({
@@ -108,50 +78,22 @@ Candidate.afterCreate(async (candidate, options) => {
       progress_status: candidate.progress_status || "Application Received", // ✅ Fix: Default Value
       status_date: candidate.status_date || new Date(), // ✅ Fix: Default Date
       entry_date: candidate.entry_date
-    }, { transaction });
+    });
 
-    await transaction.commit();
     console.log(`✅ TotalData & ActiveList entry created for Candidate: ${candidate.candidate_name}`);
   } catch (error) {
-    await transaction.rollback();
     console.error("❌ Error creating TotalData or ActiveList entry:", error);
   }
 });
 
 
-
-
 // Hook to sync data after updating a candidate
-// Candidate.afterUpdate(async (candidate) => {
-//   try {
-//     const TotalData = sequelize.models.TotalData;
-//     await TotalData.update(
-//       { status: mapStatus(candidate.progress_status) },
-//       { where: { candidate_id: candidate.id } }
-//     );
-
-//     const ActiveList = sequelize.models.ActiveList;
-//     await ActiveList.update(
-//       {
-//         position: candidate.position,
-//         department: candidate.department,
-//         progress_status: candidate.progress_status,
-//       },
-//       { where: { candidate_id: candidate.id } }
-//     );
-
-//     console.log(`✅ TotalData & ActiveList entry updated for Candidate: ${candidate.candidate_name}`);
-//   } catch (error) {
-//     console.error("❌ Error updating TotalData or ActiveList entry:", error);
-//   }
-// });
-Candidate.afterUpdate(async (candidate, options) => {
-  const transaction = await sequelize.transaction();
+Candidate.afterUpdate(async (candidate) => {
   try {
     const TotalData = sequelize.models.TotalData;
     await TotalData.update(
       { status: mapStatus(candidate.progress_status) },
-      { where: { candidate_id: candidate.id }, transaction }
+      { where: { candidate_id: candidate.id } }
     );
 
     const ActiveList = sequelize.models.ActiveList;
@@ -159,51 +101,30 @@ Candidate.afterUpdate(async (candidate, options) => {
       {
         position: candidate.position,
         department: candidate.department,
-        progress_status: candidate.progress_status || "Application Received",
+        progress_status: candidate.progress_status,
       },
-      { where: { candidate_id: candidate.id }, transaction }
+      { where: { candidate_id: candidate.id } }
     );
 
-    await transaction.commit();
     console.log(`✅ TotalData & ActiveList entry updated for Candidate: ${candidate.candidate_name}`);
   } catch (error) {
-    await transaction.rollback();
     console.error("❌ Error updating TotalData or ActiveList entry:", error);
   }
 });
 
-
 // Hook to remove data after deleting a candidate
-// Candidate.afterDestroy(async (candidate) => {
-//   try {
-//     const TotalData = sequelize.models.TotalData;
-//     await TotalData.destroy({ where: { candidate_id: candidate.id } });
-
-//     const ActiveList = sequelize.models.ActiveList;
-//     await ActiveList.destroy({ where: { candidate_id: candidate.id } });
-
-//     console.log(`✅ TotalData & ActiveList entry removed for Candidate: ${candidate.candidate_name}`);
-//   } catch (error) {
-//     console.error("❌ Error deleting TotalData or ActiveList entry:", error);
-//   }
-// });
-
-Candidate.afterDestroy(async (candidate, options) => {
-  const transaction = await sequelize.transaction();
+Candidate.afterDestroy(async (candidate) => {
   try {
     const TotalData = sequelize.models.TotalData;
-    await TotalData.destroy({ where: { candidate_id: candidate.id }, transaction });
+    await TotalData.destroy({ where: { candidate_id: candidate.id } });
 
     const ActiveList = sequelize.models.ActiveList;
-    await ActiveList.destroy({ where: { candidate_id: candidate.id }, transaction });
+    await ActiveList.destroy({ where: { candidate_id: candidate.id } });
 
-    await transaction.commit();
     console.log(`✅ TotalData & ActiveList entry removed for Candidate: ${candidate.candidate_name}`);
   } catch (error) {
-    await transaction.rollback();
     console.error("❌ Error deleting TotalData or ActiveList entry:", error);
   }
 });
-
 
 module.exports = Candidate;

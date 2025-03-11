@@ -45,18 +45,15 @@ const Candidate = sequelize.define("Candidate", {
 
 // Function to map progress_status to TotalData status
 function mapStatus(progressStatus) {
-  if (!progressStatus) return "Master";
-
-  const normalizedStatus = progressStatus.trim().toLowerCase();
+  const normalizedStatus = progressStatus?.trim().toLowerCase();
 
   if (["joined"].includes(normalizedStatus)) return "Joined";
-  if (["offer released", "final discussion"].some(s => s.toLowerCase() === normalizedStatus)) return "About to Join";
-  if (["buffer", "hold"].some(s => s.toLowerCase() === normalizedStatus)) return "Buffer";
-  if (["rejected", "declined offer"].some(s => s.toLowerCase() === normalizedStatus)) return "Rejected";
+  if (["offer released", "final discussion"].includes(normalizedStatus)) return "About to Join";
+  if (["buffer", "hold"].includes(normalizedStatus)) return "Buffer";
+  if (["rejected", "declined offer"].includes(normalizedStatus)) return "Rejected";
 
   return "Master"; // Default category
 }
-
 
 
 // Hook to sync data after creating a candidate

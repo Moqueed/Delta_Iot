@@ -12,13 +12,9 @@ const Approval = sequelize.define("Approval", {
     type: DataTypes.INTEGER,
     allowNull: false,
     references: {
-      model: "activeList",
+      model: "ActiveList",
       key: "id",
     },
-    approval_status: { 
-      type: DataTypes.ENUM("Pending", "Approved", "Rejected"), 
-      defaultValue: "Pending" 
-    },    
   },
   HR_name: { type: DataTypes.STRING, allowNull: false },
   HR_mail: { type: DataTypes.STRING, allowNull: false },
@@ -54,9 +50,6 @@ const Approval = sequelize.define("Approval", {
   status: { type: DataTypes.ENUM("Pending", "Approved", "Rejected"), defaultValue: "Pending" },
   requested_by: { type: DataTypes.STRING, allowNull: false },
   approved_by: { type: DataTypes.STRING },
-},{
-  tableName: "approvals",
-  timestamps: false
 });
 
 // ✅ Use unique alias names

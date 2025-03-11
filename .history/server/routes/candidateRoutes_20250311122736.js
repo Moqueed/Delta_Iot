@@ -2,7 +2,6 @@ const express = require("express");
 const Candidate = require("../models/Candidate");
 const ActiveList = require("../models/ActiveList");
 const TotalData = require("../models/TotalData");
-const { sequelize } = require("../models");
 
 const router = express.Router();
 

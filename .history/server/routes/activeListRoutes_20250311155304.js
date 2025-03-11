@@ -54,54 +54,9 @@ router.get("/:email", async (req, res) => {
 //   }
 // });
 
-// router.put("/request-status-change/:email", async (req, res) => {
-//   try {
-//     const { progress_status, requested_by } = req.body;
-
-//     // Find the candidate
-//     const candidate = await Candidate.findOne({ where: { candidate_email_id: req.params.email } });
-//     if (!candidate) {
-//       return res.status(404).json({ error: "Candidate not found" });
-//     }
-
-//     // Find the related active_list entry
-//     const activeListEntry = await ActiveList.findOne({ where: { candidate_email_id: req.params.email } });
-//     if (!activeListEntry) {
-//       return res.status(404).json({ error: "Candidate not found in Active List" });
-//     }
-
-//     // Store request in Approval table for admin review
-//     await Approval.create({
-//       active_list_id: activeListEntry.id, // ✅ Link to ActiveList
-//       candidate_email_id: candidate.candidate_email_id,
-//       candidate_name: candidate.candidate_name,
-//       HR_name: activeListEntry.HR_name, // Assuming HR details are stored in ActiveList
-//       HR_mail: activeListEntry.HR_mail,
-//       entry_date: activeListEntry.entry_date,
-//       position: candidate.position,
-//       department: candidate.department,
-//       previous_progress_status: candidate.progress_status,
-//       requested_progress_status: progress_status,
-//       status_date: new Date(),
-//       contact_number: candidate.contact_number,
-//       requested_by: requested_by, // From request body
-//       approval_status: "Pending", // Default status before admin approves/rejects
-//     });
-
-//     res.status(200).json({ message: "Status change request sent for approval" });
-//   } catch (error) {
-//     console.error("❌ Error requesting status change:", error);
-//     res.status(500).json({ error: "Internal server error" });
-//   }
-// });
-
 router.put("/request-status-change/:email", async (req, res) => {
   try {
     const { progress_status, requested_by } = req.body;
-
-    if (!requested_by) {
-      return res.status(400).json({ error: "Requested by is required" });
-    }
 
     // Find the candidate
     const candidate = await Candidate.findOne({ where: { candidate_email_id: req.params.email } });
@@ -109,23 +64,19 @@ router.put("/request-status-change/:email", async (req, res) => {
       return res.status(404).json({ error: "Candidate not found" });
     }
 
-    // Find the related ActiveList entry
+    // Find the related active_list entry
     const activeListEntry = await ActiveList.findOne({ where: { candidate_email_id: req.params.email } });
     if (!activeListEntry) {
       return res.status(404).json({ error: "Candidate not found in Active List" });
     }
-
-    // Ensure HR_name and HR_mail exist
-    const HR_name = activeListEntry.HR_name || "Unknown HR";
-    const HR_mail = activeListEntry.HR_mail || "unknown@company.com";
 
     // Store request in Approval table for admin review
     await Approval.create({
       active_list_id: activeListEntry.id, // ✅ Link to ActiveList
       candidate_email_id: candidate.candidate_email_id,
       candidate_name: candidate.candidate_name,
-      HR_name, // ✅ Ensures it is not null
-      HR_mail, // ✅ Ensures it is not null
+      HR_name: activeListEntry.HR_name, // Assuming HR details are stored in ActiveList
+      HR_mail: activeListEntry.HR_mail,
       entry_date: activeListEntry.entry_date,
       position: candidate.position,
       department: candidate.department,
@@ -133,8 +84,8 @@ router.put("/request-status-change/:email", async (req, res) => {
       requested_progress_status: progress_status,
       status_date: new Date(),
       contact_number: candidate.contact_number,
-      requested_by, // ✅ Ensure this is passed in request
-      approval_status: "Pending",
+      requested_by: requested_by, // From request body
+      approval_status: "Pending", // Default status before admin approves/rejects
     });
 
     res.status(200).json({ message: "Status change request sent for approval" });
@@ -145,13 +96,12 @@ router.put("/request-status-change/:email", async (req, res) => {
 });
 
 
-
 // ✅ Admin approves/rejects progress status change
 router.put("/approve-status-change/:email", async (req, res) => {
   try {
     const { approval_status } = req.body; // Expecting "Approved" or "Rejected"
     const approvalRequest = await Approval.findOne({
-      where: { candidate_email_id: req.params.email, status: "Pending" },
+      where: { candidate_email_id: req.params.email, approval_status: "Pending" },
     });
 
     if (!approvalRequest) {
@@ -173,7 +123,7 @@ router.put("/approve-status-change/:email", async (req, res) => {
     }
 
     // Update the approval request in Approval table
-    await approvalRequest.update({status: approval_status });
+    await approvalRequest.update({ approval_status });
 
     res.status(200).json({ message: `Status change ${approval_status}` });
   } catch (error) {

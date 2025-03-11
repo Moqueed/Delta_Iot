@@ -1,9 +1,7 @@
 const express = require("express");
 const Candidate = require("../models/Candidate");
-const ActiveList = require("../models/ActiveList");
-const TotalData = require("../models/TotalData");
-const { sequelize } = require("../models");
-
+const ActiveList = require("../models/ActiveList"); // Import ActiveList model
+const TotalData = require("../models/TotalData"); // Import TotalData model
 const router = express.Router();
 
 // Function to map progress_status to TotalData status
@@ -15,62 +13,46 @@ function mapStatus(progressStatus) {
   return "Master"; // Default category
 }
 
-// ✅ Add a new candidate and sync with ActiveList & TotalData
-
-
+// ✅ Add a new candidate and insert into ActiveList & TotalData
 router.post("/add", async (req, res) => {
-  const transaction = await sequelize.transaction();
   try {
-    const { candidate_email_id, progress_status, ...otherData } = req.body;
+    // Insert into Candidate table
+    const newCandidate = await Candidate.create(req.body);
 
-    if (!progress_status) {
-      return res.status(400).json({ message: "progress_status is required" });
-    }
-
-    // 🔍 Check if candidate exists
-    const existingCandidate = await Candidate.findOne({ where: { candidate_email_id } });
-    if (existingCandidate) {
-      return res.status(400).json({ message: "Candidate with this email already exists" });
-    }
-
-    // ✅ Insert into Candidate
-    const newCandidate = await Candidate.create(
-      { candidate_email_id, progress_status, ...otherData },
-      { transaction }
-    );
-
-    // ✅ Insert into ActiveList
-    await ActiveList.create(
-      {
-        candidate_id: newCandidate.id,
-        candidate_email_id: newCandidate.candidate_email_id,
-        ...otherData,
-      },
-      { transaction }
-    );
-
-    // ✅ Insert into TotalData
-    await TotalData.create(
-      {
-        candidate_id: newCandidate.id,
-        status: mapStatus(progress_status),
-      },
-      { transaction }
-    );
-
-    await transaction.commit();
-    res.status(201).json({
-      message: "Candidate added successfully and synced to ActiveList & TotalData!",
-      candidate: newCandidate,
+    // Insert into ActiveList
+    const activeCandidate = await ActiveList.create({
+      candidate_email_id: newCandidate.candidate_email_id, // Ensure field matches
+      candidate_name: newCandidate.candidate_name,
+      position: newCandidate.position,
+      department: newCandidate.department,
+      skills: newCandidate.skills,
+      progress_status: newCandidate.progress_status, // Sync status
+      contact_number: newCandidate.contact_number,
+      current_company: newCandidate.current_company,
+      current_location: newCandidate.current_location,
+      permanent_location: newCandidate.permanent_location,
+      qualification: newCandidate.qualification,
+      experience: newCandidate.experience,
+      current_ctc: newCandidate.current_ctc,
+      expected_ctc: newCandidate.expected_ctc,
+      notice_period: newCandidate.notice_period,
+      reference: newCandidate.reference,
+      comments: newCandidate.comments,
+      attachments: newCandidate.attachments
     });
+
+    // Insert into TotalData
+    await TotalData.create({
+      candidate_id: newCandidate.id,
+      status: mapStatus(newCandidate.progress_status),
+    });
+
+    res.status(201).json({ message: "Candidate added successfully and moved to ActiveList!", candidate: newCandidate });
   } catch (error) {
-    await transaction.rollback();
     console.error("❌ Error adding candidate:", error);
     res.status(500).json({ message: "Error adding candidate", error: error.message });
   }
 });
-
-
 
 // ✅ Get all candidates
 router.get("/", async (req, res) => {

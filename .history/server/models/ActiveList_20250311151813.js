@@ -34,7 +34,7 @@ const ActiveList = sequelize.define("ActiveList", {
   },
   entry_date: { type: DataTypes.DATEONLY, allowNull: false, defaultValue: DataTypes.NOW },
 }, {
-  tableName: "activeList",
+  tableName: "ActiveList",
   timestamps: false,
 });
 

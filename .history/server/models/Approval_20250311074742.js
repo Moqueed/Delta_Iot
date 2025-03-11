@@ -3,22 +3,13 @@ const sequelize = require("../config/database");
 const ActiveList = require("./ActiveList");
 
 const Approval = sequelize.define("Approval", {
-  id: {
-    type: DataTypes.INTEGER,
-    autoIncrement: true,
-    primaryKey: true,
-  },
   active_list_id: {
     type: DataTypes.INTEGER,
     allowNull: false,
     references: {
-      model: "activeList",
+      model: "activelists",
       key: "id",
     },
-    approval_status: { 
-      type: DataTypes.ENUM("Pending", "Approved", "Rejected"), 
-      defaultValue: "Pending" 
-    },    
   },
   HR_name: { type: DataTypes.STRING, allowNull: false },
   HR_mail: { type: DataTypes.STRING, allowNull: false },
@@ -54,9 +45,6 @@ const Approval = sequelize.define("Approval", {
   status: { type: DataTypes.ENUM("Pending", "Approved", "Rejected"), defaultValue: "Pending" },
   requested_by: { type: DataTypes.STRING, allowNull: false },
   approved_by: { type: DataTypes.STRING },
-},{
-  tableName: "approvals",
-  timestamps: false
 });
 
 // ✅ Use unique alias names

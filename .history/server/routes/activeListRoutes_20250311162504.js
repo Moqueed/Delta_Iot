@@ -173,7 +173,7 @@ router.put("/approve-status-change/:email", async (req, res) => {
     }
 
     // Update the approval request in Approval table
-    await approvalRequest.update({status: approval_status });
+    await approvalRequest.update({ approval_status });
 
     res.status(200).json({ message: `Status change ${approval_status}` });
   } catch (error) {

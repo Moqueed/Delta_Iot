@@ -3,22 +3,13 @@ const sequelize = require("../config/database");
 const ActiveList = require("./ActiveList");
 
 const Approval = sequelize.define("Approval", {
-  id: {
-    type: DataTypes.INTEGER,
-    autoIncrement: true,
-    primaryKey: true,
-  },
   active_list_id: {
     type: DataTypes.INTEGER,
     allowNull: false,
     references: {
-      model: "activeList",
+      model: "activelists", // Ensure the correct table name
       key: "id",
     },
-    approval_status: { 
-      type: DataTypes.ENUM("Pending", "Approved", "Rejected"), 
-      defaultValue: "Pending" 
-    },    
   },
   HR_name: { type: DataTypes.STRING, allowNull: false },
   HR_mail: { type: DataTypes.STRING, allowNull: false },
@@ -33,8 +24,8 @@ const Approval = sequelize.define("Approval", {
     allowNull: false,
   },
   skills: { type: DataTypes.TEXT },
-  previous_progress_status: { type: DataTypes.STRING, allowNull: false }, 
-  requested_progress_status: { type: DataTypes.STRING, allowNull: false }, 
+  previous_progress_status: { type: DataTypes.STRING, allowNull: false }, // Old status
+  requested_progress_status: { type: DataTypes.STRING, allowNull: false }, // New status
   profile_stage: { type: DataTypes.STRING },
   status_date: { type: DataTypes.DATEONLY, allowNull: false },
   candidate_email_id: { type: DataTypes.STRING, allowNull: false },
@@ -54,16 +45,13 @@ const Approval = sequelize.define("Approval", {
   status: { type: DataTypes.ENUM("Pending", "Approved", "Rejected"), defaultValue: "Pending" },
   requested_by: { type: DataTypes.STRING, allowNull: false },
   approved_by: { type: DataTypes.STRING },
-},{
-  tableName: "approvals",
-  timestamps: false
 });
 
-// ✅ Use unique alias names
-ActiveList.hasMany(Approval, { foreignKey: "active_list_id", as: "active_list_approvals" });
-Approval.belongsTo(ActiveList, { foreignKey: "active_list_id", as: "related_active_list" });
+// ✅ Relationships
+ActiveList.hasMany(Approval, { foreignKey: "active_list_id", as: "approvals" });
+Approval.belongsTo(ActiveList, { foreignKey: "active_list_id", as: "activeList" });
 
-// ✅ Auto-sync hook to update ActiveList when Approval is approved
+// ✅ Hook: Sync Approval Status with ActiveList
 Approval.afterUpdate(async (approval) => {
   try {
     if (approval.status === "Approved") {

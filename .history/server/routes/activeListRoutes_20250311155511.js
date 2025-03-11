@@ -151,7 +151,7 @@ router.put("/approve-status-change/:email", async (req, res) => {
   try {
     const { approval_status } = req.body; // Expecting "Approved" or "Rejected"
     const approvalRequest = await Approval.findOne({
-      where: { candidate_email_id: req.params.email, status: "Pending" },
+      where: { candidate_email_id: req.params.email, approval_status: "Pending" },
     });
 
     if (!approvalRequest) {
@@ -173,7 +173,7 @@ router.put("/approve-status-change/:email", async (req, res) => {
     }
 
     // Update the approval request in Approval table
-    await approvalRequest.update({status: approval_status });
+    await approvalRequest.update({ approval_status });
 
     res.status(200).json({ message: `Status change ${approval_status}` });
   } catch (error) {

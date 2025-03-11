@@ -1,7 +1,3 @@
-const { DataTypes } = require("sequelize");
-const sequelize = require("../config/database");
-const Candidate = require("./Candidate");
-
 const TotalData = sequelize.define("TotalData", {
   id: {
     type: DataTypes.INTEGER,
@@ -27,6 +23,3 @@ const TotalData = sequelize.define("TotalData", {
   tableName: "TotalData",
   timestamps: false,
 });
-
-
-module.exports = TotalData;

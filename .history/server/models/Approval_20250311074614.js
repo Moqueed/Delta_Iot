@@ -3,38 +3,30 @@ const sequelize = require("../config/database");
 const ActiveList = require("./ActiveList");
 
 const Approval = sequelize.define("Approval", {
-  id: {
-    type: DataTypes.INTEGER,
-    autoIncrement: true,
-    primaryKey: true,
-  },
   active_list_id: {
     type: DataTypes.INTEGER,
     allowNull: false,
     references: {
-      model: "activeList",
-      key: "id",
-    },
-    approval_status: { 
-      type: DataTypes.ENUM("Pending", "Approved", "Rejected"), 
-      defaultValue: "Pending" 
-    },    
+      model: 'activelist',  // use the exact table name as defined in your ActiveList model
+      key: 'id'
+    }
   },
+  
   HR_name: { type: DataTypes.STRING, allowNull: false },
   HR_mail: { type: DataTypes.STRING, allowNull: false },
   entry_date: { type: DataTypes.DATEONLY, allowNull: false },
   candidate_name: { type: DataTypes.STRING, allowNull: false },
-  position: {
-    type: DataTypes.ENUM("Python Developer", "EMD Developer", "Intern", "Trainee", "C++ Developer", "Accounts", "Developer"),
-    allowNull: false,
+  position: { 
+    type: DataTypes.ENUM("Python Developer", "EMD Developer", "Intern", "Trainee", "C++ Developer", "Accounts", "Developer"), 
+    allowNull: false 
   },
-  department: {
+  department: { 
     type: DataTypes.ENUM("IT", "EMDB", "HIGH", "Financial", "Python"),
-    allowNull: false,
+    allowNull: false
   },
   skills: { type: DataTypes.TEXT },
-  previous_progress_status: { type: DataTypes.STRING, allowNull: false }, 
-  requested_progress_status: { type: DataTypes.STRING, allowNull: false }, 
+  previous_progress_status: { type: DataTypes.STRING, allowNull: false }, // Old status
+  requested_progress_status: { type: DataTypes.STRING, allowNull: false }, // New status
   profile_stage: { type: DataTypes.STRING },
   status_date: { type: DataTypes.DATEONLY, allowNull: false },
   candidate_email_id: { type: DataTypes.STRING, allowNull: false },
@@ -53,17 +45,16 @@ const Approval = sequelize.define("Approval", {
   attachments: { type: DataTypes.STRING },
   status: { type: DataTypes.ENUM("Pending", "Approved", "Rejected"), defaultValue: "Pending" },
   requested_by: { type: DataTypes.STRING, allowNull: false },
-  approved_by: { type: DataTypes.STRING },
-},{
-  tableName: "approvals",
-  timestamps: false
+  approved_by: { type: DataTypes.STRING }
 });
 
-// ✅ Use unique alias names
-ActiveList.hasMany(Approval, { foreignKey: "active_list_id", as: "active_list_approvals" });
-Approval.belongsTo(ActiveList, { foreignKey: "active_list_id", as: "related_active_list" });
+ActiveList.hasMany(Approval, { foreignKey: "active_list_id", as: "approvals" });
+Approval.belongsTo(ActiveList, { foreignKey: "active_list_id", as: "activeList" });
 
-// ✅ Auto-sync hook to update ActiveList when Approval is approved
+ActiveList.hasMany(Approval, { foreignKey: "active_list_id", as: "approvals" });
+Approval.belongsTo(ActiveList, { foreignKey: "active_list_id", as: "activeList" });
+
+// ✅ Hook: Sync Approval Status with ActiveList
 Approval.afterUpdate(async (approval) => {
   try {
     if (approval.status === "Approved") {

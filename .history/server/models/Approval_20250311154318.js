@@ -15,10 +15,6 @@ const Approval = sequelize.define("Approval", {
       model: "activeList",
       key: "id",
     },
-    approval_status: { 
-      type: DataTypes.ENUM("Pending", "Approved", "Rejected"), 
-      defaultValue: "Pending" 
-    },    
   },
   HR_name: { type: DataTypes.STRING, allowNull: false },
   HR_mail: { type: DataTypes.STRING, allowNull: false },
