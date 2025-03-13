@@ -26,7 +26,7 @@ const RegisterPage = () => {
   return (
     <div style={{ height: "100vh", display: "flex", justifyContent: "center", alignItems: "center", background: "#fff" }}>
       <Card style={{ width: 400, padding: 20, borderRadius: 10, boxShadow: "0 4px 20px rgba(0,0,0,0.3)" }}>
-        <Title level={2} style={{ textAlign: "center", marginBottom: 20 }}>Register</Title>
+        <Title level={2} style={{ textAlign: "center", marginBottom: 20 }}>REGISTER</Title>
 
         <Form layout="vertical" onFinish={onFinish}>
           <Form.Item name="name" label={<Text strong>Name</Text>} rules={[{ required: true, message: "Please enter your name" }]}>

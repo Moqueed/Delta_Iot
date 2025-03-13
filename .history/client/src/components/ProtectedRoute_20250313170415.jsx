@@ -5,17 +5,13 @@ const ProtectedRoute = ({ children, role }) => {
   const token = localStorage.getItem("token");
   const userRole = localStorage.getItem("role");
 
-  if (!token) {
-    message.error("Please log in first!");
-    return <Navigate to="/login" replace />;
+  if (token && userRole === role) {
+    return children;
   }
 
-  if (userRole !== role) {
-    message.error("Unauthorized access!");
-    return <Navigate to="/login" replace />;
-  }
-
-  return children;
+  // Show an error message and redirect to login
+  message.error("Unauthorized access. Redirecting to login...");
+  return <Navigate to="/login" replace />;
 };
 
 export default ProtectedRoute;

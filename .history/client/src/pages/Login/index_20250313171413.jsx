@@ -6,10 +6,10 @@ import { jwtDecode } from "jwt-decode";
 
 const { Title, Text } = Typography;
 const { Option } = Select;
+const [loading, setLoading] = useState(false);
 
 const LoginPage = () => {
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(false);
   console.log("Navigate function:", navigate);
 
   const handleLogin = async (values) => {

@@ -1,40 +1,52 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { Form, Button, Input, Select, Typography, Card, message } from "antd";
+import { Form, Button, Input, Typography, Card } from "antd";
 import { LoginUser } from "../../api/users";
 import { jwtDecode } from "jwt-decode";
 
 const { Title, Text } = Typography;
-const { Option } = Select;
 
 const LoginPage = () => {
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(false);
-  console.log("Navigate function:", navigate);
+  const [emailError, setEmailError] = useState("");
+  const [passwordError, setPasswordError] = useState("");
 
   const handleLogin = async (values) => {
-    setLoading(true);
+    setEmailError("");
+    setPasswordError("");
+
     try {
       const response = await LoginUser(values);
-  
+
       if (response.token) {
         localStorage.setItem("token", response.token);
-  
+
         const decoded = jwtDecode(response.token);
         console.log("✅ Decoded Token:", decoded);
-        localStorage.setItem("role", values.role);
-  
-        message.success(`Welcome, ${values.role}!`);
-  
+        localStorage.setItem("role", decoded.role);
+
+        // Success message
+        message.success(`Welcome, ${decoded.role}!`);
+
         // Redirect based on role
-        const userRole = values.role.toLowerCase();
-        navigate(userRole === "admin" ? "/admin-dashboard" : "/hr-dashboard", { replace: true });
+        if (decoded.role === "Admin") {
+          navigate("/admin-dashboard");
+        } else if (decoded.role === "HR") {
+          navigate("/hr-dashboard");
+        } else {
+          navigate("/dashboard");
+        }
       }
     } catch (err) {
       console.error("Login failed:", err);
-      message.error("Invalid email or password. Please try again.");
-    } finally {
-      setLoading(false);
+      const errorMsg = err.response?.data?.error;
+      if (errorMsg === "Invalid email") {
+        setEmailError("Invalid email. Please check and try again.");
+      } else if (errorMsg === "Invalid password") {
+        setPasswordError("Invalid password. Please try again.");
+      } else {
+        setEmailError("Invalid email or password. Please try again.");
+      }
     }
   };
 
@@ -48,6 +60,8 @@ const LoginPage = () => {
             name="email"
             label={<Text strong>Email</Text>}
             rules={[{ required: true, message: "Please enter your email" }]}
+            validateStatus={emailError ? "error" : ""}
+            help={emailError}
           >
             <Input placeholder="Enter your email" />
           </Form.Item>
@@ -56,19 +70,10 @@ const LoginPage = () => {
             name="password"
             label={<Text strong>Password</Text>}
             rules={[{ required: true, message: "Please enter your password" }]}
+            validateStatus={passwordError ? "error" : ""}
+            help={passwordError}
           >
             <Input.Password placeholder="Enter your password" />
-          </Form.Item>
-
-          <Form.Item
-            name="role"
-            label={<Text strong>Role</Text>}
-            rules={[{ required: true, message: "Please select a role" }]}
-          >
-            <Select placeholder="Select Role">
-              <Option value="HR">HR</Option>
-              <Option value="Admin">Admin</Option>
-            </Select>
           </Form.Item>
 
           <Button type="primary" htmlType="submit" block style={{ marginTop: 10 }}>Login</Button>

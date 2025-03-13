@@ -9,32 +9,40 @@ const { Option } = Select;
 
 const LoginPage = () => {
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(false);
-  console.log("Navigate function:", navigate);
 
   const handleLogin = async (values) => {
-    setLoading(true);
     try {
       const response = await LoginUser(values);
-  
+
       if (response.token) {
         localStorage.setItem("token", response.token);
-  
+
         const decoded = jwtDecode(response.token);
         console.log("✅ Decoded Token:", decoded);
         localStorage.setItem("role", values.role);
-  
+
+        // Success message
         message.success(`Welcome, ${values.role}!`);
-  
+
         // Redirect based on role
-        const userRole = values.role.toLowerCase();
-        navigate(userRole === "admin" ? "/admin-dashboard" : "/hr-dashboard", { replace: true });
+        if (values.role === "Admin") {
+          navigate("/admin-dashboard");
+        } else if (values.role === "HR") {
+          navigate("/hr-dashboard");
+        } else {
+          navigate("/dashboard");
+        }
       }
     } catch (err) {
       console.error("Login failed:", err);
-      message.error("Invalid email or password. Please try again.");
-    } finally {
-      setLoading(false);
+      const errorMsg = err.response?.data?.error;
+      if (errorMsg === "Invalid email") {
+        message.error("Invalid email. Please check and try again.");
+      } else if (errorMsg === "Invalid password") {
+        message.error("Invalid password. Please try again.");
+      } else {
+        message.error("Invalid email or password. Please try again.");
+      }
     }
   };
 
