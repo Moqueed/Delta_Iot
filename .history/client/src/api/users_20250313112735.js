@@ -15,11 +15,8 @@ export const RegisterUser = async (values) => {
 export const LoginUser = async (values) => {
   try {
     const response = await axiosInstance.post("/api/users/login", values);
-    console.log("✅ Login Response:", response.data);
     return response.data;
   } catch (err) {
-    console.error("❌ Login Error:", err.response?.data || err.message);
-    throw err;
+    console.log(err);
   }
 };
-

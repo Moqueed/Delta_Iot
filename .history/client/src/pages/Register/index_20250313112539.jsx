@@ -1,9 +1,8 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { Button, Input, Form, Select, message } from "antd";
+import { Button, Input, Form, message } from "antd";
 import { RegisterUser } from "../../api/users";
 
-const { Option } = Select;
 
 const RegisterPage = () => {
   const [form] = Form.useForm();
@@ -11,14 +10,12 @@ const RegisterPage = () => {
 
   const onFinish = async (values) => {
     try {
-      const response = await RegisterUser(values);
+      const response = await RegisterUser({...values, role: "HR"});
       if (response) {
-        message.success(`${values.role} registration successful! Redirecting to login...`);
-        console.log("✅ Registration Successful:", response);
+        message.success("Registration successful! Redirecting to login...");
         navigate("/login");
       }
     } catch (err) {
-      console.error("❌ Registration failed:", err);
       message.error("Registration failed. Please try again.");
     }
   };
@@ -33,33 +30,20 @@ const RegisterPage = () => {
       >
         <h2 className="text-2xl font-bold mb-4">Register</h2>
 
-        <Form.Item name="name" rules={[{ required: true, message: "Please enter your name" }]}>
+        <Form.Item name="name" rules={[{ required: true, message: "Please enter your name" }]}> 
           <Input placeholder="Name" />
         </Form.Item>
 
-        <Form.Item
-          name="email"
-          rules={[{ required: true, type: "email", message: "Please enter a valid email" }]}
-        >
+        <Form.Item name="email" rules={[{ required: true, type: "email", message: "Please enter a valid email" }]}> 
           <Input placeholder="Email" />
         </Form.Item>
 
-        <Form.Item name="password" rules={[{ required: true, message: "Please enter your password" }]}>
+        <Form.Item name="password" rules={[{ required: true, message: "Please enter your password" }]}> 
           <Input.Password placeholder="Password" />
         </Form.Item>
 
-        {/* 🔥 Role selector */}
-        <Form.Item name="role" rules={[{ required: true, message: "Please select a role" }]}>
-          <Select placeholder="Select Role">
-            <Option value="HR">HR</Option>
-            <Option value="Admin">Admin</Option>
-          </Select>
-        </Form.Item>
-
         <Form.Item>
-          <Button type="primary" htmlType="submit" className="w-full">
-            Register
-          </Button>
+          <Button type="primary" htmlType="submit" className="w-full">Register</Button>
         </Form.Item>
 
         <p className="text-center">

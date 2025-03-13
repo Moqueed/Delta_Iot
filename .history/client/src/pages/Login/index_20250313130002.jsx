@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Form, Button, Input, message } from "antd";
 import { LoginUser } from "../../api/users";
-import { jwtDecode } from "jwt-decode";
+import jwtDecode from "jwt-decode"; // Ensure you install this: npm install jwt-decode
 
 const LoginPage = () => {
   const navigate = useNavigate();
@@ -16,7 +16,6 @@ const LoginPage = () => {
 
         // 🎯 Decode JWT to extract role
         const decoded = jwtDecode(response.token);
-        console.log("✅ Decoded Token:", decoded);
         localStorage.setItem("role", decoded.role);
 
         message.success(`Welcome, ${decoded.role}!`);

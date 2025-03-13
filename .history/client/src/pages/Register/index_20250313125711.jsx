@@ -14,11 +14,9 @@ const RegisterPage = () => {
       const response = await RegisterUser(values);
       if (response) {
         message.success(`${values.role} registration successful! Redirecting to login...`);
-        console.log("✅ Registration Successful:", response);
         navigate("/login");
       }
     } catch (err) {
-      console.error("❌ Registration failed:", err);
       message.error("Registration failed. Please try again.");
     }
   };

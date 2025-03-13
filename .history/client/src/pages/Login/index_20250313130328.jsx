@@ -16,7 +16,6 @@ const LoginPage = () => {
 
         // 🎯 Decode JWT to extract role
         const decoded = jwtDecode(response.token);
-        console.log("✅ Decoded Token:", decoded);
         localStorage.setItem("role", decoded.role);
 
         message.success(`Welcome, ${decoded.role}!`);

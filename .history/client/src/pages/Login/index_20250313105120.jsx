@@ -1,38 +1,24 @@
 import React, { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
-import { Form, Button, Input, message } from "antd";
+import { useNavigate } from "react-router-dom";
+import { Form, Button, Input } from "antd";
 import { LoginUser } from "../../api/users";
-import { jwtDecode } from "jwt-decode";
 
 const LoginPage = () => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const navigate = useNavigate();
 
   const handleLogin = async (values) => {
     try {
       const response = await LoginUser(values);
-
       if (response.token) {
         localStorage.setItem("token", response.token);
-
-        // 🎯 Decode JWT to extract role
-        const decoded = jwtDecode(response.token);
-        console.log("✅ Decoded Token:", decoded);
-        localStorage.setItem("role", decoded.role);
-
-        message.success(`Welcome, ${decoded.role}!`);
-
-        // 🔥 Redirect based on role
-        if (decoded.role === "Admin") {
-          navigate("/admin-dashboard");
-        } else if (decoded.role === "HR") {
-          navigate("/hr-dashboard");
-        } else {
-          navigate("/dashboard");
-        }
+        alert("Login successful!");
+        navigate("/dashboard");
       }
     } catch (err) {
       console.error("Login failed:", err);
-      message.error("Invalid email or password. Please try again.");
+      alert("Login failed. Please check your credentials.");
     }
   };
 
@@ -42,20 +28,28 @@ const LoginPage = () => {
         className="bg-white p-6 rounded-lg shadow-lg w-80"
         onFinish={handleLogin}
       >
-        <h2 className="text-2xl font-semibold mb-4 text-center">Login</h2>
+        <h2 className="text-2xl font-semibold mb-4">Login</h2>
 
         <Form.Item
           name="email"
           rules={[{ required: true, message: "Please enter your email" }]}
         >
-          <Input placeholder="Email" />
+          <Input
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
         </Form.Item>
 
         <Form.Item
           name="password"
           rules={[{ required: true, message: "Please enter your password" }]}
         >
-          <Input.Password placeholder="Password" />
+          <Input.Password
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
         </Form.Item>
 
         <Button
@@ -68,9 +62,9 @@ const LoginPage = () => {
 
         <p className="mt-4 text-center">
           New user?{" "}
-          <Link to="/register" className="text-blue-500 hover:underline">
+          <a href="/register" className="text-blue-500 hover:underline">
             Register here
-          </Link>
+          </a>
         </p>
       </Form>
     </div>

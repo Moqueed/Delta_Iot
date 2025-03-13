@@ -27,19 +27,19 @@ app.get("/", (req, res) => {
   res.send("Server is Running! Welcome to Delta IoT API.");
 });
 
-app.use("/api/positions", activePositionRoutes);
-app.use("/api/candidates", candidateRoutes);
-app.use("/api/hrvacancies", hrVacancyRoutes); // Keep this
-app.use("/api/activelist", activeListRoutes);
-app.use("/api/uploads", express.static("uploads"));
-app.use("/api/uploads", uploadRoutes);
-app.use("/api/totaldata", totalDataRoutes);
-app.use("/api/hr", hrRoutes);
-app.use("/api/hr-data-tracker", hrDataTrackerRoutes);
-app.use("/api/assign-to-hr", assignToHRRoutes);
-app.use("/api/users", userRoutes);
-app.use("/api/admin/protected", protectedAdminRoutes);
-app.use("/api/hr/protected", protectedHrRoutes);
+app.use("/positions", activePositionRoutes);
+app.use("/candidates", candidateRoutes);
+app.use("/hrvacancies", hrVacancyRoutes); // Keep this
+app.use("/activelist", activeListRoutes);
+app.use("/uploads", express.static("uploads"));
+app.use("/uploads", uploadRoutes);
+app.use("/totaldata", totalDataRoutes);
+app.use("/hr", hrRoutes);
+app.use("/hr-data-tracker", hrDataTrackerRoutes);
+app.use("/assign-to-hr", assignToHRRoutes);
+app.use("/auth", userRoutes);
+app.use("/admin/protected", protectedAdminRoutes);
+app.use("/hr/protected", protectedHrRoutes);
 
 
 

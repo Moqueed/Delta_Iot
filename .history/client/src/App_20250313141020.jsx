@@ -8,12 +8,14 @@ import HRDashboard from "./pages/HR/HRDashboard";
 function App() {
   return (
     <div>
+        <Router>
         <Routes>
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/dashboard" element={<ProtectedRoute><HRDashboard/></ProtectedRoute>}/>
           <Route path="*" element={<Navigate to="/login"/>}/>
         </Routes>
+        </Router>
     </div>
   );
 }
