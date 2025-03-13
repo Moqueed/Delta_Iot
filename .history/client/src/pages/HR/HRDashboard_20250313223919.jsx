@@ -8,6 +8,10 @@ const { Title } = Typography;
 const HRDashboard = () => {
   const navigate = useNavigate();
 
+  const handleNavigateToTotalData = () => {
+    navigate("/total-data");
+  };
+
   const sections = [
     { key: "vacancies", icon: <FileOutlined />, title: "Vacancies", borderColor: "#FFD700" },
     { key: "total-data", icon: <DatabaseOutlined />, title: "Total Data", borderColor: "#32CD32" },
@@ -16,48 +20,20 @@ const HRDashboard = () => {
   ];
 
   return (
-    <div
-      style={{
-        height: "100vh",
-        width: "100vw",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        backgroundColor: "#f5f5f5",
-        overflow: "hidden", // Prevent scrolling
-      }}
-    >
-      <Title level={2} style={{ marginBottom: "20px", fontWeight: "bold", color: "#333" }}>
-        HR CREDENTIALS
-      </Title>
-
-      <Row
-        gutter={[32, 32]}
-        style={{
-          width: "100%",
-          maxWidth: "1200px",
-          padding: "20px",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-        }}
-      >
+    <div className="dashboard-container">
+    <div className="card" onClick={handleNavigateToTotalData}>
+    </div>
+      <h3>Total Master Data</h3>
+    <div style={{ height: "100vh", width: "100vw", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", backgroundColor: "#f5f5f5" }}>
+      <Title level={2} style={{ marginBottom: "20px" }}>HR CREDENTIALS</Title>
+      <Row gutter={[32, 32]} style={{ width: "100%", padding: "20px" }} justify="center" align="middle">
         {sections.map((section) => (
-          <Col
-            key={section.key}
-            xs={24}
-            sm={12}
-            md={6}
-            lg={6}
-            xl={6}
-            style={{ display: "flex", justifyContent: "center" }}
-          >
+          <Col key={section.key} xs={24} sm={12} md={6} lg={6} xl={6} style={{ display: "flex", justifyContent: "center" }}>
             <Card
               hoverable
               style={{
-                width: "220px",
-                height: "220px",
+                width: 240,
+                height: 240,
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "center",
@@ -67,7 +43,6 @@ const HRDashboard = () => {
                 border: `8px solid ${section.borderColor}`,
                 padding: "20px",
                 transition: "transform 0.3s ease, box-shadow 0.3s ease",
-                cursor: "pointer",
               }}
               onClick={() => navigate(`/${section.key}`)}
               onMouseEnter={(e) => {
@@ -85,6 +60,7 @@ const HRDashboard = () => {
           </Col>
         ))}
       </Row>
+    </div>
     </div>
   );
 };
