@@ -2,6 +2,7 @@ const sequelize = require("../config/database");
 
 // Import models
 
+
 const ActivePosition = require("./ActivePosition");
 const HRVacancy = require("./HRVacancy");
 const Candidate = require("./Candidate");

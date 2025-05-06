@@ -43,7 +43,7 @@ const Candidate = sequelize.define(
         "Withdrawn",
         "No Show",
         "Buffer",
-        "Hold","HR Round Cleared"
+        "Hold"
       ),
       allowNull: false,
     },

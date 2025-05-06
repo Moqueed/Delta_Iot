@@ -1,6 +1,7 @@
 require("dotenv").config();
 const express = require("express");
 const { sequelize } = require("./models");
+const TotalData = require("./routes/totalDataRoutes");
 const activePositionRoutes = require("./routes/activePositionRoutes");
 const candidateRoutes = require("./routes/candidateRoutes");
 const hrVacancyRoutes = require("./routes/hrVacancyRoutes"); // Keep this
@@ -8,7 +9,6 @@ const activeListRoutes = require("./routes/activeListRoutes");
 const approvalRoutes = require("./routes/approvalRoutes");
 const uploadRoutes = require("./routes/uploadRoutes");
 const totalDataRoutes = require("./routes/totalDataRoutes");
-const rejectedRoutes = require("./routes/rejectedRoutes");
 const hrRoutes = require("./routes/hrRoutes");
 const hrDataTrackerRoutes = require("./routes/hrDataTrackerRoutes");
 const assignToHRRoutes = require("./routes/assignToHRRoutes");
@@ -36,7 +36,6 @@ app.use("/api/approvals", approvalRoutes);
 app.use("/api/uploads", express.static("uploads"));
 app.use("/api/uploads", uploadRoutes);
 app.use("/api/totaldata", totalDataRoutes);
-app.use("/api/rejected", rejectedRoutes);
 app.use("/api/hr", hrRoutes);
 app.use("/api/hr-data-tracker", hrDataTrackerRoutes);
 app.use("/api/assign-to-hr", assignToHRRoutes);

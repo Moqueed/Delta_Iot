@@ -8,7 +8,6 @@ const activeListRoutes = require("./routes/activeListRoutes");
 const approvalRoutes = require("./routes/approvalRoutes");
 const uploadRoutes = require("./routes/uploadRoutes");
 const totalDataRoutes = require("./routes/totalDataRoutes");
-const rejectedRoutes = require("./routes/rejectedRoutes");
 const hrRoutes = require("./routes/hrRoutes");
 const hrDataTrackerRoutes = require("./routes/hrDataTrackerRoutes");
 const assignToHRRoutes = require("./routes/assignToHRRoutes");
@@ -36,7 +35,6 @@ app.use("/api/approvals", approvalRoutes);
 app.use("/api/uploads", express.static("uploads"));
 app.use("/api/uploads", uploadRoutes);
 app.use("/api/totaldata", totalDataRoutes);
-app.use("/api/rejected", rejectedRoutes);
 app.use("/api/hr", hrRoutes);
 app.use("/api/hr-data-tracker", hrDataTrackerRoutes);
 app.use("/api/assign-to-hr", assignToHRRoutes);
@@ -47,7 +45,7 @@ app.use("/api/hr/protected", protectedHrRoutes);
 
 
 // Sync Database & Start Server
-sequelize.sync({alter: false}).then(() => { // Use 'alter: true'
+sequelize.sync({alter: true}).then(() => { // Use 'alter: true'
   console.log("✅ Database Synced!");
 
   app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

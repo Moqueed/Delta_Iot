@@ -27,7 +27,7 @@ router.put("/change-status/:email", async (req, res) => {
   }
 });
 
-// ✅ HR Request review for Admin
+// ✅ Request review for Admin
 router.put("/request-review/:email", async (req, res) => {
   try {
     const { progress_status, requested_by } = req.body;
@@ -86,41 +86,40 @@ router.put("/request-review/:email", async (req, res) => {
 });
 
 // ✅ Admin approves/rejects
-// router.put("/review-status/:email", async (req, res) => {
-//   try {
-//     const { approval_status } = req.body;
-//     const approvalRequest = await Approval.findOne({ where: { candidate_email_id: req.params.email, approval_status: "Pending" } });
+router.put("/review-status/:email", async (req, res) => {
+  try {
+    const { approval_status } = req.body;
+    const approvalRequest = await Approval.findOne({ where: { candidate_email_id: req.params.email, approval_status: "Pending" } });
 
-//     if (!approvalRequest) return res.status(404).json({ error: "No pending review found" });
+    if (!approvalRequest) return res.status(404).json({ error: "No pending review found" });
 
-//     if (approval_status === "Approved") {
-//       await Candidate.update({ progress_status: approvalRequest.requested_progress_status }, { where: { candidate_email_id: req.params.email } });
-//       await ActiveList.update({ progress_status: approvalRequest.requested_progress_status }, { where: { candidate_email_id: req.params.email } });
-//     } else if (approval_status === "Rejected") {
-//       await Rejected.create({ ...approvalRequest.dataValues });
-//       await ActiveList.destroy({ where: { candidate_email_id: req.params.email } });
-//     }
+    if (approval_status === "Approved") {
+      await Candidate.update({ progress_status: approvalRequest.requested_progress_status }, { where: { candidate_email_id: req.params.email } });
+      await ActiveList.update({ progress_status: approvalRequest.requested_progress_status }, { where: { candidate_email_id: req.params.email } });
+    } else if (approval_status === "Rejected") {
+      await Rejected.create({ ...approvalRequest.dataValues });
+      await ActiveList.destroy({ where: { candidate_email_id: req.params.email } });
+    }
 
-//     await approvalRequest.update({ approval_status });
+    await approvalRequest.update({ approval_status });
 
-//     // ✅ Send mail to HR
-//     const mailOptions = {
-//       from: process.env.EMAIL_ADMIN,
-//       to: approvalRequest.HR_mail,
-//       subject: `Candidate Review Status - ${approvalRequest.candidate_name}`,
-//       text: `The candidate ${approvalRequest.candidate_name} has been ${approval_status}.`,
-//     };
+    // ✅ Send mail to HR
+    const mailOptions = {
+      from: process.env.EMAIL_ADMIN,
+      to: approvalRequest.HR_mail,
+      subject: `Candidate Review Status - ${approvalRequest.candidate_name}`,
+      text: `The candidate ${approvalRequest.candidate_name} has been ${approval_status}.`,
+    };
 
-//     await transporter.sendMail(mailOptions);
+    await transporter.sendMail(mailOptions);
 
-//     res.status(200).json({ message: `Candidate ${approval_status}` });
-//   } catch (error) {
-//     console.error("❌ Error reviewing candidate:", error);
-//     res.status(500).json({ error: "Internal server error" });
-//   }
-// });
-
-//HR mail to manager
+    res.status(200).json({ message: `Candidate ${approval_status}` });
+  } catch (error) {
+    console.error("❌ Error reviewing candidate:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+//mail to manager
 router.post("/notify-manager", async(req, res) => {
   try{
     const{candidate_id, progress_status} = req.body;

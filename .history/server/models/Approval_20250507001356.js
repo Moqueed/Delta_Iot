@@ -1,6 +1,29 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/database");
 const ActiveList = require("./ActiveList");
+const nodemailer = require("nodemailer");
+
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.EMAIL_ADMIN,
+    pass: process.env.EMAIL_ADMIN_PASS,
+  },
+});
+
+const sendMail = async(email, subject, message) => {
+  try{
+    await transporter.sendMail({
+      from: process.env.EMAIL_ADMIN,
+      to: email,
+      subject,
+      text: message,
+    });
+    console.log(`Email sent to ${email}`);
+  } catch(error){
+    console.error("Email failed", error);
+  }
+};
 
 const Approval = sequelize.define("Approval", {
   id: {
@@ -15,10 +38,10 @@ const Approval = sequelize.define("Approval", {
       model: "activeList",
       key: "id",
     },
-    approval_status: {
-      type: DataTypes.ENUM("Pending", "Approved", "Rejected"),
-      defaultValue: "Pending"
-    },
+    approval_status: { 
+      type: DataTypes.ENUM("Pending", "Approved", "Rejected"), 
+      defaultValue: "Pending" 
+    },    
   },
   HR_name: { type: DataTypes.STRING, allowNull: false },
   HR_mail: { type: DataTypes.STRING, allowNull: false },
@@ -29,12 +52,12 @@ const Approval = sequelize.define("Approval", {
     allowNull: false,
   },
   department: {
-    type: DataTypes.ENUM("IT", "EMDB", "HIGH", "Financial", "Python", "Engineering"),
+    type: DataTypes.ENUM("IT", "EMDB", "HIGH", "Financial", "Python","Engineering"),
     allowNull: false,
   },
   skills: { type: DataTypes.TEXT },
-  previous_progress_status: { type: DataTypes.STRING, allowNull: false },
-  requested_progress_status: { type: DataTypes.STRING, allowNull: false },
+  previous_progress_status: { type: DataTypes.STRING, allowNull: false }, 
+  requested_progress_status: { type: DataTypes.STRING, allowNull: false }, 
   profile_stage: { type: DataTypes.STRING },
   status_date: { type: DataTypes.DATEONLY, allowNull: false },
   candidate_email_id: { type: DataTypes.STRING, allowNull: false },
@@ -51,32 +74,41 @@ const Approval = sequelize.define("Approval", {
   notice_period: { type: DataTypes.STRING },
   comments: { type: DataTypes.TEXT },
   attachments: { type: DataTypes.STRING },
-  approval_status: { type: DataTypes.ENUM("Pending", "Approved", "Rejected"), defaultValue: "Pending" },
+  status: { type: DataTypes.ENUM("Pending", "Approved", "Rejected"), defaultValue: "Pending" },
   requested_by: { type: DataTypes.STRING, allowNull: false },
   approved_by: { type: DataTypes.STRING },
-}, {
+},{
   tableName: "approvals",
   timestamps: false
 });
 
-// Setup association
+// ✅ Use unique alias names
 ActiveList.hasMany(Approval, { foreignKey: "active_list_id", as: "active_list_approvals" });
 Approval.belongsTo(ActiveList, { foreignKey: "active_list_id", as: "related_active_list" });
 
-// Optional: Move hook logic to controller instead for more control
-// If you still want to update ActiveList & insert to Rejected here, keep this:
+// 🔥 After Update Hook - Handle Approval Decision
 Approval.afterUpdate(async (approval) => {
   try {
-    const { approval_status, candidate_name, requested_progress_status, comments, approved_by } = approval;
+    const { status, candidate_name, HR_mail, requested_progress_status, comments, approved_by } = approval;
 
-    if (approval_status === "Approved") {
+    if (status === "Approved") {
+      // ✅ Update Active List with new status
       await ActiveList.update(
         { progress_status: requested_progress_status },
         { where: { id: approval.active_list_id } }
       );
 
       console.log(`✅ ActiveList updated for Candidate: ${candidate_name}`);
-    } else if (approval_status === "Rejected") {
+
+      // 📩 Send Approval Email to HR
+      await sendMail(
+        HR_mail,
+        `Candidate Approved ✅ - ${candidate_name}`,
+        `Good news!\nThe candidate ${candidate_name} has been approved by ${approved_by}.\n\nNew Status: ${requested_progress_status}\n\nComments: ${comments || "No additional comments."}`
+      );
+
+    } else if (status === "Rejected") {
+      // 🚫 Move to Rejected Table
       const Rejected = require("./Rejected");
       await Rejected.create({
         ...approval.dataValues,
@@ -84,9 +116,16 @@ Approval.afterUpdate(async (approval) => {
       });
 
       console.log(`🚫 Candidate ${candidate_name} moved to Rejected table`);
+
+      // 📩 Send Rejection Email to HR
+      await sendMail(
+        HR_mail,
+        `Candidate Rejected ❌ - ${candidate_name}`,
+        `Unfortunately, the candidate ${candidate_name} has been rejected by ${approved_by}.\n\nComments: ${comments || "No additional comments."}`
+      );
     }
   } catch (error) {
-    console.error("❌ Error processing approval logic:", error);
+    console.error("❌ Error processing approval:", error);
   }
 });
 

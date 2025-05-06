@@ -2,10 +2,10 @@ const express = require("express");
 const router = express.Router();
 const Candidate = require("../models/Candidate");
 const ActiveList = require("../models/ActiveList");
-// const TotalMasterData = require("../models/TotalData");
-// const AboutToJoin = require("../models/TotalData");
+const TotalMasterData = require("../models/TotalData");
+const AboutToJoin = require("../models/TotalData");
 const NewlyJoined = require("../models/TotalData");
-// const BufferData = require("../models/TotalData");
+const BufferData = require("../models/TotalData");
 const Rejected = require("../models/Rejected");
 
 // ✅ Add new candidate and sync to ActiveList

@@ -2,10 +2,11 @@ const sequelize = require("../config/database");
 
 // Import models
 
+
 const ActivePosition = require("./ActivePosition");
 const HRVacancy = require("./HRVacancy");
 const Candidate = require("./Candidate");
-// const { TotalMasterData } = require("./TotalData");
+const { TotalMasterData } = require("./TotalData");
 
 
 // Define relationships after model imports
@@ -20,4 +21,4 @@ function setupAssociations() {
 // Execute association setup
 setupAssociations();
 
-module.exports = { sequelize, ActivePosition, HRVacancy, Candidate };
+module.exports = { sequelize, ActivePosition, HRVacancy, Candidate, TotalMasterData };

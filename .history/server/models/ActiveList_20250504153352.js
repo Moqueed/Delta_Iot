@@ -43,8 +43,7 @@ const ActiveList = sequelize.define(
         "Withdrawn",
         "No Show",
         "Buffer",
-        "Hold",
-        "HR Round Cleared"
+        "Hold"
       ),
       allowNull: false,
       defaultValue: "Application Received",

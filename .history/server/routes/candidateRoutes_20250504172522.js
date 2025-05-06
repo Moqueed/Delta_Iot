@@ -2,10 +2,10 @@ const express = require("express");
 const router = express.Router();
 const Candidate = require("../models/Candidate");
 const ActiveList = require("../models/ActiveList");
-// const TotalMasterData = require("../models/TotalData");
-// const AboutToJoin = require("../models/TotalData");
+const TotalMasterData = require("../models/TotalData");
+const AboutToJoin = require("../models/TotalData");
 const NewlyJoined = require("../models/TotalData");
-// const BufferData = require("../models/TotalData");
+const BufferData = require("../models/TotalData");
 const Rejected = require("../models/Rejected");
 
 // ✅ Add new candidate and sync to ActiveList
@@ -139,39 +139,39 @@ router.get("/search/:email", async (req, res) => {
 });
 
 // ✅ Move candidate to a different model
-// router.put("/move/:email", async (req, res) => {
-//   try {
-//     const { targetModel } = req.body;
-//     const email = req.params.email;
+router.put("/move/:email", async (req, res) => {
+  try {
+    const { targetModel } = req.body;
+    const email = req.params.email;
 
-//     const candidate = await ActiveList.findOne({
-//       where: { candidate_email_id: email },
-//     });
-//     if (!candidate)
-//       return res
-//         .status(404)
-//         .json({ error: "Candidate not found in Active List" });
+    const candidate = await ActiveList.findOne({
+      where: { candidate_email_id: email },
+    });
+    if (!candidate)
+      return res
+        .status(404)
+        .json({ error: "Candidate not found in Active List" });
 
-//     const models = {
-//       TotalMasterData,
-//       AboutToJoin,
-//       NewlyJoined,
-//       BufferData,
-//       Rejected,
-//     };
+    const models = {
+      TotalMasterData,
+      AboutToJoin,
+      NewlyJoined,
+      BufferData,
+      Rejected,
+    };
 
-//     if (!models[targetModel])
-//       return res.status(400).json({ error: "Invalid target model" });
+    if (!models[targetModel])
+      return res.status(400).json({ error: "Invalid target model" });
 
-//     // Move candidate to target model
-//     await models[targetModel].create({ ...candidate.dataValues });
-//     await ActiveList.destroy({ where: { candidate_email_id: email } });
+    // Move candidate to target model
+    await models[targetModel].create({ ...candidate.dataValues });
+    await ActiveList.destroy({ where: { candidate_email_id: email } });
 
-//     res.status(200).json({ message: `Candidate moved to ${targetModel}` });
-//   } catch (error) {
-//     console.error("❌ Error moving candidate:", error);
-//     res.status(500).json({ error: "Internal server error" });
-//   }
-// });
+    res.status(200).json({ message: `Candidate moved to ${targetModel}` });
+  } catch (error) {
+    console.error("❌ Error moving candidate:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
 
 module.exports = router;

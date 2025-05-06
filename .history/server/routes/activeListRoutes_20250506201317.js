@@ -27,7 +27,7 @@ router.put("/change-status/:email", async (req, res) => {
   }
 });
 
-// ✅ HR Request review for Admin
+// ✅ Request review for Admin
 router.put("/request-review/:email", async (req, res) => {
   try {
     const { progress_status, requested_by } = req.body;

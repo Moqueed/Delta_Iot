@@ -19,13 +19,9 @@ const Candidate = sequelize.define(
       allowNull: false,
     },
     department: {
-      type: DataTypes.STRING(50),  // or longer
+      type: DataTypes.ENUM("IT", "EMDB", "HIGH", "Financial", "Python","Engineering"),
       allowNull: false,
-      validate: {
-        isIn: [['IT', 'EMDB', 'HIGH', 'Financial', 'Python', 'Engineering']], // still validates input
-      }
     },
-    
     skills: { type: DataTypes.TEXT },
     progress_status: {
       type: DataTypes.ENUM(
@@ -43,7 +39,7 @@ const Candidate = sequelize.define(
         "Withdrawn",
         "No Show",
         "Buffer",
-        "Hold","HR Round Cleared"
+        "Hold"
       ),
       allowNull: false,
     },
