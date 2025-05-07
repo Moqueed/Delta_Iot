@@ -66,6 +66,26 @@ ActiveList.belongsTo(Candidate, {
   onDelete: "CASCADE",
 });
 
+ActiveList.beforeUpdate(async (activeList, options) => {
+  const newProgressStatus = activeList.progress_status; // ✅ Extracted safely
+
+  const allowedStatuses = [
+    "application received",
+    "phone screening",
+    "l1 interview",
+    "yet to share",
+    "l2 interview",
+    "shared with client"
+  ];
+
+  if (allowedStatuses.includes(newProgressStatus.toLowerCase())) {
+    // Add your logic to trigger movement to Total Master Data
+    console.log("🔁 Move to Total Master Data or enable button");
+
+    // Optional: Call a function to insert into TotalMasterData table here
+  }
+});
+
 
 
 module.exports = ActiveList;

@@ -23,11 +23,7 @@ const Rejected = sequelize.define("Rejected", {
     type: DataTypes.STRING,
     allowNull: false,
   },
-  progress_status: {
-    type: DataTypes.STRING,
-    allowNull: false,
-  },
-
+ 
   status_date: {
     type: DataTypes.DATE,
     defaultValue: DataTypes.NOW,

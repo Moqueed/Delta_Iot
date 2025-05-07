@@ -100,7 +100,7 @@ router.put("/rejected-data/:id", async (req, res) => {
         );
 
         return res.status(200).json({
-          message: "Progress status updated in both ActiveList and Rejected Data",
+          message: "Progress status updated in both ActiveList and RejectedData",
         });
       }
 

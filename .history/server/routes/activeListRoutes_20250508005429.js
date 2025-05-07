@@ -5,6 +5,7 @@ const Approval = require("../models/Approval");
 const Candidate = require("../models/Candidate");
 const Rejected = require("../models/Rejected");
 const nodemailer = require("nodemailer");
+const { and } = require("sequelize");
 const { TotalMasterData, AboutToJoin, NewlyJoined, BufferData } = require("../models/TotalData");
 
 // Mail setup
@@ -387,11 +388,11 @@ router.put("/newly-joined/:id", async (req, res) => {
 });
 
 //Buffer Data
-const bufferStatuses = ["hold","buffer"]; // use lowercase
+const bufferStatuses = ["on hold"]; // use lowercase
 
 router.put("/buffer-data/:id", async (req, res) => {
   const { id } = req.params;
-  const { progress_status, status_reason } = req.body;
+  const { progress_status } = req.body;
 
   try {
     const activeRecord = await ActiveList.findByPk(id);
@@ -437,9 +438,9 @@ router.put("/buffer-data/:id", async (req, res) => {
         position: activeRecord.position,
         department: activeRecord.department,
         progress_status: progress_status,
+        hold_date: today,
         HR_name: activeRecord.HR_name,
         HR_mail: activeRecord.HR_mail,
-        status_reason: status_reason,
       });
 
       return res.status(200).json({

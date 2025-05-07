@@ -5,7 +5,8 @@ const Approval = require("../models/Approval");
 const Candidate = require("../models/Candidate");
 const Rejected = require("../models/Rejected");
 const nodemailer = require("nodemailer");
-const { TotalMasterData, AboutToJoin, NewlyJoined, BufferData } = require("../models/TotalData");
+const { and } = require("sequelize");
+const { TotalMasterData, AboutToJoin, NewlyJoined } = require("../models/TotalData");
 
 // Mail setup
 const transporter = nodemailer.createTransport({
@@ -316,7 +317,7 @@ router.put("/about-to-join/:id", async (req, res) => {
   }
 });
 
-//About to Join
+
 const newlyJoined = ["joined"]; // Make sure it's lowercase
 
 router.put("/newly-joined/:id", async (req, res) => {
@@ -385,77 +386,6 @@ router.put("/newly-joined/:id", async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 });
-
-//Buffer Data
-const bufferStatuses = ["hold","buffer"]; // use lowercase
-
-router.put("/buffer-data/:id", async (req, res) => {
-  const { id } = req.params;
-  const { progress_status, status_reason } = req.body;
-
-  try {
-    const activeRecord = await ActiveList.findByPk(id);
-
-    if (!activeRecord) {
-      return res.status(404).json({ message: "ActiveList record not found" });
-    }
-
-    const today = new Date();
-
-    // Only allow buffer-status candidates
-    if (bufferStatuses.includes(progress_status.toLowerCase())) {
-      // Update ActiveList
-      await ActiveList.update({ progress_status }, { where: { id } });
-
-      // Check if already in BufferData
-      const existingEntry = await BufferData.findOne({
-        where: {
-          candidate_email_id: activeRecord.candidate_email_id,
-        },
-      });
-
-      if (existingEntry) {
-        await BufferData.update(
-          { progress_status },
-          {
-            where: {
-              candidate_email_id: activeRecord.candidate_email_id,
-            },
-          }
-        );
-
-        return res.status(200).json({
-          message: "Progress status updated in both ActiveList and BufferData",
-        });
-      }
-
-      // If not in BufferData, create new entry
-      await BufferData.create({
-        candidate_id: activeRecord.candidate_id,
-        candidate_name: activeRecord.candidate_name,
-        candidate_email_id: activeRecord.candidate_email_id,
-        position: activeRecord.position,
-        department: activeRecord.department,
-        progress_status: progress_status,
-        HR_name: activeRecord.HR_name,
-        HR_mail: activeRecord.HR_mail,
-        status_reason: status_reason,
-      });
-
-      return res.status(200).json({
-        message: "Progress status updated and data moved to BufferData",
-      });
-    }
-
-    return res.status(200).json({
-      message: "Progress status not eligible for BufferData",
-    });
-  } catch (error) {
-    console.error("❌ Error updating status:", error);
-    res.status(500).json({ error: "Internal server error" });
-  }
-});
-
 
 
 module.exports = router;

@@ -23,6 +23,10 @@ const HRDataTracker = sequelize.define(
     HR_name: {
       type: DataTypes.STRING,
       allowNull: false,
+      references:{
+        model: HR,
+        key: "id",
+      },
     },
     candidate_id: {
       type: DataTypes.INTEGER,

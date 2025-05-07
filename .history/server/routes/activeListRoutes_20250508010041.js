@@ -387,11 +387,11 @@ router.put("/newly-joined/:id", async (req, res) => {
 });
 
 //Buffer Data
-const bufferStatuses = ["hold","buffer"]; // use lowercase
+const bufferStatuses = ["on hold","buffer"]; // use lowercase
 
 router.put("/buffer-data/:id", async (req, res) => {
   const { id } = req.params;
-  const { progress_status, status_reason } = req.body;
+  const { progress_status } = req.body;
 
   try {
     const activeRecord = await ActiveList.findByPk(id);
@@ -439,7 +439,7 @@ router.put("/buffer-data/:id", async (req, res) => {
         progress_status: progress_status,
         HR_name: activeRecord.HR_name,
         HR_mail: activeRecord.HR_mail,
-        status_reason: status_reason,
+        status_reason,
       });
 
       return res.status(200).json({

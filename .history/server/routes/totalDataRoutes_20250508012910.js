@@ -7,6 +7,17 @@ const BufferData = require("../models/TotalData");
 const Rejected = require("../models/Rejected");
 
 
+// ✅ Get all data from Rejected Data
+router.get("/rejected", async (req, res) => {
+  try {
+    const data = await Rejected.findAll();
+    res.status(200).json(data);
+  } catch (error) {
+    console.error("❌ Error fetching Rejected Data:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 // ✅ Get all data from Total Master Data
 router.get("/total-master-data", async (req, res) => {
   try {
@@ -47,17 +58,6 @@ router.get("/buffer-data", async (req, res) => {
     res.status(200).json(data);
   } catch (error) {
     console.error("❌ Error fetching Buffer Data:", error);
-    res.status(500).json({ error: "Internal server error" });
-  }
-});
-
-// ✅ Get all data from Rejected Data
-router.get("/rejected", async (req, res) => {
-  try {
-    const data = await Rejected.findAll();
-    res.status(200).json(data);
-  } catch (error) {
-    console.error("❌ Error fetching Rejected Data:", error);
     res.status(500).json({ error: "Internal server error" });
   }
 });

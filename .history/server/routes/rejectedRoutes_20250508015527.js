@@ -9,7 +9,7 @@ const Rejected = require("../models/Rejected");
 // ✅ Admin or HR approves/rejects progress status change
 router.put("/approve-status-change/:email", async (req, res) => {
   try {
-    const { approval_status, progress_status, rejection_reason } = req.body;
+    const { approval_status, rejected_by, rejected_by_role, rejection_reason } = req.body;
     const email = req.params.email;
 
     const approvalRequest = await Approval.findOne({
@@ -38,7 +38,7 @@ router.put("/approve-status-change/:email", async (req, res) => {
     }
 
     if (approval_status === "Rejected") {
-      if ( !rejection_reason) {
+      if (!rejected_by || !rejected_by_role || !rejection_reason) {
         return res.status(400).json({ error: "Rejected by, role, and reason are required" });
       }
 
@@ -48,7 +48,6 @@ router.put("/approve-status-change/:email", async (req, res) => {
         candidate_name: approvalRequest.candidate_name,
         position: approvalRequest.position,
         department: approvalRequest.department,
-        progress_status: progress_status,
         rejection_reason, // ✅ Capture rejection reason
         status_date: new Date(),
       });
@@ -68,7 +67,7 @@ router.put("/approve-status-change/:email", async (req, res) => {
 });
 
 
-//Rejected from ActiveList
+//Rejected from activelist
 const rejectedStatuses = ["rejected","declined offer", "no show", "withdrawn"]; // Add any other rejected statuses if necessary
 
 router.put("/rejected-data/:id", async (req, res) => {
@@ -93,14 +92,14 @@ router.put("/rejected-data/:id", async (req, res) => {
 
       if (existingEntry) {
         await Rejected.update(
-          { progress_status, rejection_reason },
+          { progress_status, status_reason },
           {
             where: { candidate_email_id: activeRecord.candidate_email_id },
           }
         );
 
         return res.status(200).json({
-          message: "Progress status updated in both ActiveList and Rejected Data",
+          message: "Progress status updated in both ActiveList and RejectedData",
         });
       }
 

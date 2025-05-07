@@ -391,7 +391,7 @@ const bufferStatuses = ["hold","buffer"]; // use lowercase
 
 router.put("/buffer-data/:id", async (req, res) => {
   const { id } = req.params;
-  const { progress_status, status_reason } = req.body;
+  const { progress_status } = req.body;
 
   try {
     const activeRecord = await ActiveList.findByPk(id);

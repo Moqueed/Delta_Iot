@@ -66,6 +66,21 @@ ActiveList.belongsTo(Candidate, {
   onDelete: "CASCADE",
 });
 
+const allowedStatuses = [
+  "application received",
+  "phone screening",
+  "l1 interview",
+  "yet to share",
+  "l2 interview",
+  "shared with client"
+];
+
+if (allowedStatuses.includes(newProgressStatus.toLowerCase())) {
+  // Send a flag to frontend to highlight "Total Master Data" button
+  res.status(200).json({ message: "Progress updated", highlightTotalMasterData: true });
+} else {
+  res.status(200).json({ message: "Progress updated", highlightTotalMasterData: false });
+}
 
 
 module.exports = ActiveList;

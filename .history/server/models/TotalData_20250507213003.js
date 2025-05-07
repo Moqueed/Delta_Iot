@@ -39,12 +39,8 @@ const NewlyJoined = sequelize.define(
   {
     id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
     candidate_name: { type: DataTypes.STRING, allowNull: false },
-    candidate_email_id: { type: DataTypes.STRING, allowNull: false },
-    HR_name: { type: DataTypes.STRING, allowNull: false },
-    HR_mail: { type: DataTypes.STRING, allowNull: false },
     position: { type: DataTypes.STRING, allowNull: false },
     department: { type: DataTypes.STRING, allowNull: false },
-    progress_status: { type: DataTypes.STRING, allowNull: false },
     joining_date: { type: DataTypes.DATEONLY, allowNull: false },
   },
   { tableName: "newly_joined", timestamps: false }
@@ -55,12 +51,8 @@ const BufferData = sequelize.define(
   {
     id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
     candidate_name: { type: DataTypes.STRING, allowNull: false },
-    candidate_email_id: { type: DataTypes.STRING, allowNull: false },
-    HR_name: { type: DataTypes.STRING, allowNull: false },
-    HR_mail: { type: DataTypes.STRING, allowNull: false },
     position: { type: DataTypes.STRING, allowNull: false },
     department: { type: DataTypes.STRING, allowNull: false },
-    progress_status: { type: DataTypes.STRING, allowNull: false },
     status_reason: { type: DataTypes.TEXT },
   },
   { tableName: "buffer_data", timestamps: false }

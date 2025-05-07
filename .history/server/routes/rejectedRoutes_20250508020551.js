@@ -93,14 +93,14 @@ router.put("/rejected-data/:id", async (req, res) => {
 
       if (existingEntry) {
         await Rejected.update(
-          { progress_status, rejection_reason },
+          { progress_status, status_reason },
           {
             where: { candidate_email_id: activeRecord.candidate_email_id },
           }
         );
 
         return res.status(200).json({
-          message: "Progress status updated in both ActiveList and Rejected Data",
+          message: "Progress status updated in both ActiveList and RejectedData",
         });
       }
 
