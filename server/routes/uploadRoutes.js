@@ -4,7 +4,6 @@ const upload = require("../middleware/uploadMiddleware");
 const Candidate = require("../models/Candidate");
 const ActiveList = require("../models/ActiveList");
 const Approvals = require("../models/Approval");
-const HR = require("../models/HR");
 
 const router = express.Router();
 
