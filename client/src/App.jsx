@@ -40,13 +40,23 @@ function App() {
           element={<ActivePositions />}
         />
         <Route path="/hr-dashboard/vacancies" element={<HRVacancy />} />
-        <Route path="/hr-dashboard/add-candidate" element={<CandidateForm/>} />
-        <Route path="/admin-dashboard/add-candidate" element={
+        <Route path="/hr-dashboard/add-candidate" element={<CandidateForm />} />
+        <Route
+          path="/admin-dashboard/add-candidate"
+          element={
             <ProtectedRoute role="HR">
-              <CandidateForm/>
+              <CandidateForm />
             </ProtectedRoute>
-          }/> 
-        <Route path="/hr-dashboard/activeList" element={<ActiveListPage/>}/>
+          }
+        />
+        <Route
+          path="/hr-dashboard/active-list"
+          element={
+            <ProtectedRoute role="HR">
+              <ActiveListPage />
+            </ProtectedRoute>
+          }
+        />
       </Routes>
     </>
   );

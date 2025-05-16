@@ -45,10 +45,10 @@ router.put("/review-status/:email", async (req, res) => {
       return res.status(404).json({ error: "No pending review found" });
 
     if (approval_status === "Approved") {
-      await Candidate.update(
-        { progress_status: approvalRequest.requested_progress_status },
-        { where: { candidate_email_id: req.params.email } }
-      );
+      // await Candidate.update(
+      //   { progress_status: approvalRequest.requested_progress_status },
+      //   { where: { candidate_email_id: req.params.email } }
+      // );
       await ActiveList.update(
         { progress_status: approvalRequest.requested_progress_status },
         { where: { candidate_email_id: req.params.email } }

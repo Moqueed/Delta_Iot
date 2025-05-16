@@ -12,7 +12,7 @@ export const addCandidate = async (candidateData) => {
 };
 
 // ✅ search by email
-export const searchCandidateByEmail = async () => {
+export const searchCandidateByEmail = async (email) => {
   try {
     const response = await axiosInstance.get(`/api/candidates/search/${email}`);
     return response.data;
@@ -41,5 +41,15 @@ export const deleteCandidate = async (id) => {
   } catch (error) {
     console.error("❌ Error deleting candidate:", error);
     throw error.response?.data?.message || "Failed to delete candidate";
+  }
+};
+//Get by email
+export const getCandidates = async(email) => {
+  try{
+    const response = await axiosInstance.get(`/api/candidates/${email}`);
+    return response.data;
+  } catch(error){
+    console.error("Error fetching candidate:", error);
+    throw error.response?.data?.message || "Failed to fetch candidate";
   }
 };

@@ -22,11 +22,23 @@ const Candidate = sequelize.define(
       type: DataTypes.STRING(50),  // or longer
       allowNull: false,
       validate: {
-        isIn: [['IT', 'EMDB', 'HIGH', 'Financial', 'Python', 'Engineering']], // still validates input
+        isIn: [['IT', 'EMDB', 'HIGH', 'Financial', 'Python','Accounts','Engineering']], // still validates input
       }
     },
-    
-    skills: { type: DataTypes.TEXT },
+     skills: {
+    type: DataTypes.JSON,
+    allowNull: false,
+    validate: {
+      isArray(value) {
+        if (!Array.isArray(value)) {
+          throw new Error("Skills must be an array");
+        }
+        if (value.length === 0) {
+          throw new Error("Skills cannot be empty");
+        }
+      },
+    },
+  },
     progress_status: {
       type: DataTypes.ENUM(
         "Application Received",
@@ -43,13 +55,14 @@ const Candidate = sequelize.define(
         "Withdrawn",
         "No Show",
         "Buffer",
-        "Hold","HR Round Cleared"
+        "Hold",
+        "HR Round Cleared"
       ),
       allowNull: false,
     },
     profile_stage: { type: DataTypes.STRING },
     status_date: { type: DataTypes.DATEONLY, allowNull: false, defaultValue: DataTypes.NOW },
-    candidate_email_id: { type: DataTypes.STRING, allowNull: false },
+    candidate_email_id: { type: DataTypes.STRING, allowNull: false, unique: false },
     contact_number: { type: DataTypes.STRING, allowNull: false },
     current_company: { type: DataTypes.STRING },
     current_location: { type: DataTypes.STRING },

@@ -1,122 +1,148 @@
-import React, { useEffect, useState } from 'react';
-import { Button, Table, message, Modal, Select } from 'antd';
-import { changeStatus, requestReview, reviewStatus } from '../../api/activeList';
+import React, { useEffect, useState } from "react";
+import { Form, Input, Select, DatePicker, message, Spin, Button } from "antd";
+import dayjs from "dayjs";
+import { requestReview, updateActiveList } from "../../api/activeList";
+import axiosInstance from "../../api";
 
 
 const { Option } = Select;
 
-const ActiveListPage = () => {
+const ActiveList = () => {
+  const [loading, setLoading] = useState(true);
   const [candidates, setCandidates] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [visible, setVisible] = useState(false);
-  const [selectedCandidate, setSelectedCandidate] = useState(null);
-  const [status, setStatus] = useState('');
 
   useEffect(() => {
     fetchCandidates();
   }, []);
 
   const fetchCandidates = async () => {
-    setLoading(true);
     try {
-      const response = await fetch('/api/candidates');
-      const data = await response.json();
-      setCandidates(data);
+      const response = await axiosInstance.get("/api/activelist/fetch");
+      setCandidates(response.data);
     } catch (error) {
-      message.error('Failed to load candidates');
+      console.error("Error fetching candidates:", error);
+      message.error("Failed to fetch candidates.");
     } finally {
       setLoading(false);
     }
   };
+  
 
-  const handleStatusChange = async (email) => {
+  const handleUpdate = async (values, candidate_id) => {
     try {
-      await changeStatus(email, status);
-      message.success('Status updated successfully');
-      fetchCandidates();
+      await updateActiveList({ ...values, candidate_id });
+      message.success("Candidate updated successfully");
     } catch (error) {
-      message.error('Failed to update status');
+      message.error(error.message);
     }
   };
 
-  const handleRequestReview = async (candidate) => {
-    try {
-      await requestReview(candidate.candidate_email_id, 'Pending Review', 'HR');
-      message.success('Review request sent to admin');
-      fetchCandidates();
-    } catch (error) {
-      message.error('Failed to request review');
-    }
-  };
+  const handleReview = async (candidate) => {
+  try {
+    await requestReview(candidate.candidate_email_id, candidate.HR_name, candidate.progress_status);
+    message.success(`Review requested for ${candidate.candidate_name}`);
+  } catch (error) {
+    console.error("Review error:", error);
+    message.error("Failed to request review");
+  }
+};
 
-  const handleReview = async (approvalStatus) => {
-    try {
-      await reviewStatus(selectedCandidate.candidate_email_id, approvalStatus);
-      message.success(`Candidate ${approvalStatus}`);
-      setVisible(false);
-      fetchCandidates();
-    } catch (error) {
-      message.error('Failed to submit review');
-    }
-  };
 
-  const columns = [
-    { title: 'Name', dataIndex: 'candidate_name', key: 'name' },
-    { title: 'Email', dataIndex: 'candidate_email_id', key: 'email' },
-    { title: 'Position', dataIndex: 'position', key: 'position' },
-    { title: 'Status', dataIndex: 'progress_status', key: 'status' },
-    {
-      title: 'Actions',
-      render: (record) => (
-        <>
-          <Button onClick={() => handleRequestReview(record)} type="primary">Request Review</Button>
-          <Button
-            onClick={() => {
-              setVisible(true);
-              setSelectedCandidate(record);
-            }}
-            style={{ marginLeft: 10 }}
-          >
-            Review
-          </Button>
-          <Select placeholder="Status" onChange={(value) => setStatus(value)} style={{ width: 120, marginLeft: 10 }}>
-            <Option value="Shortlisted">Shortlisted</Option>
-            <Option value="Interviewed">Interviewed</Option>
-            <Option value="Selected">Selected</Option>
-          </Select>
-          <Button type="default" onClick={() => handleStatusChange(record.candidate_email_id)} style={{ marginLeft: 10 }}>Change Status</Button>
-        </>
-      ),
-    },
-  ];
+  if (loading) {
+    return <Spin size="large" style={{ display: "block", margin: "50px auto" }} />;
+  }
 
   return (
-    <div>
-      <h2>Active List</h2>
-      <Table columns={columns} dataSource={candidates} loading={loading} rowKey="candidate_email_id" style={{ marginTop: 20 }} />
+    <div style={{ maxWidth: "900px", margin: "0 auto", padding: "20px" }}>
+      <h2 style={{ textAlign: "center", marginBottom: 24 }}>Active Candidates List</h2>
 
-      <Modal
-  open={visible}
-  onCancel={() => setVisible(false)} // Close modal
-  title={`Review Candidate: ${selectedCandidate?.candidate_name}`}
-  footer={[
-    <Button key="reject" onClick={() => handleReview("Rejected")}>
-      Reject
-    </Button>,
-    <Button
-      key="approve"
-      type="primary"
-      onClick={() => handleReview("Approved")}
-    >
-      Approve
-    </Button>,
-  ]}
->
-  <p>Do you want to approve or reject this candidate?</p>
-</Modal>
+      {candidates.map((candidate, index) => (
+        <Form
+          key={index}
+          layout="vertical"
+          initialValues={{
+            ...candidate,
+            entry_date: dayjs(candidate.entry_date),
+            status_date: dayjs(candidate.status_date),
+          }}
+          onFinish={(values) => handleUpdate(values, candidate.candidate_id)}
+          style={{
+            padding: 24,
+            border: "1px solid #f0f0f0",
+            borderRadius: 8,
+            marginBottom: 32,
+          }}
+        >
+          {/* All form items same as before, editable now */}
+          <Form.Item name="HR_name" label="HR Name"><Input /></Form.Item>
+          <Form.Item name="HR_mail" label="HR Email"><Input /></Form.Item>
+          <Form.Item name="candidate_name" label="Candidate Name"><Input /></Form.Item>
+          <Form.Item name="candidate_email_id" label="Candidate Email"><Input /></Form.Item>
+          <Form.Item name="contact_number" label="Contact Number"><Input /></Form.Item>
+          <Form.Item name="current_company" label="Current Company"><Input /></Form.Item>
+          <Form.Item name="current_location" label="Current Location"><Input /></Form.Item>
+          <Form.Item name="permanent_location" label="Permanent Location"><Input /></Form.Item>
+          <Form.Item name="qualification" label="Qualification"><Input /></Form.Item>
+          <Form.Item name="experience" label="Experience (Years)"><Input /></Form.Item>
+          <Form.Item name="skills" label="Skills"><Input.TextArea /></Form.Item>
+          <Form.Item name="current_ctc" label="Current CTC"><Input /></Form.Item>
+          <Form.Item name="expected_ctc" label="Expected CTC"><Input /></Form.Item>
+          <Form.Item name="band" label="Band">
+            <Select>
+              {["L0", "L1", "L2", "L3", "L4"].map((band) => (
+                <Option key={band} value={band}>{band}</Option>
+              ))}
+            </Select>
+          </Form.Item>
+          <Form.Item name="reference" label="Reference"><Input /></Form.Item>
+          <Form.Item name="position" label="Position">
+            <Select>
+              {["Python Developer", "EMD Developer", "Intern", "Trainee", "C++ Developer", "Accounts", "Developer"].map((pos) => (
+                <Option key={pos} value={pos}>{pos}</Option>
+              ))}
+            </Select>
+          </Form.Item>
+          <Form.Item name="department" label="Department">
+            <Select>
+              {["IT", "EMDB", "Accounts", "Financial", "Python", "Engineering"].map((dept) => (
+                <Option key={dept} value={dept}>{dept}</Option>
+              ))}
+            </Select>
+          </Form.Item>
+          <Form.Item name="progress_status" label="Progress Status">
+            <Select>
+              {[
+                "Application Received", "Phone Screening", "L1 Interview", "Yet to Share",
+                "L2 Interview", "Shared with Client", "Final Discussion", "Offer Released",
+                "Joined", "Declined Offer", "Rejected", "Withdrawn", "No Show", "Buffer", "Hold"
+              ].map((status) => (
+                <Option key={status} value={status}>{status}</Option>
+              ))}
+            </Select>
+          </Form.Item>
+          <Form.Item name="entry_date" label="Entry Date">
+            <DatePicker style={{ width: "100%" }} />
+          </Form.Item>
+          <Form.Item name="status_date" label="Status Date">
+            <DatePicker style={{ width: "100%" }} />
+          </Form.Item>
 
+          <Form.Item>
+            <Button type="primary" htmlType="submit" style={{ marginRight: "10px" }}>
+              Update
+            </Button>
+            <Button
+              type="default"
+              onClick={() => handleReview(candidate)}
+              style={{ background: "#faad14", color: "#fff", border: "none" }}
+            >
+              Request Review
+            </Button>
+          </Form.Item>
+        </Form>
+      ))}
     </div>
   );
 };
 
-export default ActiveListPage;
+export default ActiveList;

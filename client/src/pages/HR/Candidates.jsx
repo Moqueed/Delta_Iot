@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { Form, Input, Select, Button, DatePicker, message, Spin, Upload, InputNumber } from "antd";
 import { UploadOutlined } from "@ant-design/icons";
-import { addCandidate, searchCandidateByEmail, updateCandidate } from "../../api/candidates";
+import { addCandidate, getCandidates, searchCandidateByEmail, updateCandidate } from "../../api/candidates";
 import { useNavigate, useParams } from "react-router-dom";
 import dayjs from "dayjs";
 import { uploadFile } from "../../api/upload";
+import { addToActiveList, updateActiveList } from "../../api/activeList";
+
 
 const { Option } = Select;
 
@@ -61,7 +63,6 @@ const CandidateForm = () => {
   // 🎯 Submit handler for Add/Update
   const handleSubmit = async (values) => {
     setLoading(true);
-
       try {
         //check duplicates first
         const emailCheck = await searchCandidateByEmail(values.candidate_email_id);
@@ -87,13 +88,51 @@ const CandidateForm = () => {
         status_date: values.status_date.format("YYYY-MM-DD"),
       };
 
+//       const candidateData = {
+//   "HR_name": "Moqueed Ahmed",
+//   "HR_mail": "moqueed.pearl@gmail.com",
+//   "candidate_name": "Alice Doe",
+//   "candidate_email_id": "alice.doe@example.com",
+//   "contact_number": "9876543210",
+//   "current_company": "ABC Pvt Ltd",
+//   "current_location": "Bangalore",
+//   "permanent_location": "Hyderabad",
+//   "qualification": "B.Tech",
+//   "experience": "3",
+//   "skills": "Django,flask",
+//   "current_ctc": "7 LPA",
+//   "expected_ctc": "9 LPA",
+//   "band": "L0",
+//   "reference": "Internal",
+//   "position": "Python Developer",
+//   "department": "Engineering",
+//   "progress_status": "L1 Interview",
+//   "status_date": "2025-05-02",
+//   "entry_date": "2025-05-01"
+// }
+
+
       if (isEditing) {
         await updateCandidate(id, candidateData);
+        await updateActiveList(candidateData);
         message.success("Candidate updated successfully!");
       } else {
         await addCandidate(candidateData);
-        message.success("Candidate added successfully!");
+        // await addToActiveList(candidateData);
+        // message.success("Candidate added successfully!");
+      
+
+      //Fetch the candidate_id using email
+      const result = await searchCandidateByEmail(candidateData.candidate_email_id);
+      if(!result || !result.candidate || !result.candidate.id){
+        throw new Error("candidate ID not found after adding candidate");
       }
+
+        const candidate_id = result.candidate.id;
+        //add to activelist with candidate_id
+        await addToActiveList({...candidateData, candidate_id});
+        message.success("candidate added successfully")
+    }
 
       navigate("/hr-dashboard/active-list");
     } catch (error) {
@@ -145,8 +184,6 @@ const CandidateForm = () => {
     }
   />
 </Form.Item>
-
-
       <Form
         form={form}
         layout="vertical"
@@ -175,6 +212,33 @@ const CandidateForm = () => {
           <Input placeholder="Enter contact number" />
         </Form.Item>
 
+        <Form.Item name="profile_stage" label="Profile stage" rules={[{required: true, message: "Please select profile stage"}]}>
+          <Select placeholder="Select Profile Stage">
+            <Option value="Open">Open</Option>
+            <Option value="Closed">Closed</Option>
+            </Select>
+        </Form.Item>
+
+        <Form.Item name="current_company" label="Current Company">
+          <Input placeholder="Enter current company"/>
+        </Form.Item>
+
+        <Form.Item name="current_location" label="Current Location">
+          <Input placeholder="Enter current location"/>
+        </Form.Item>
+
+        <Form.Item name="permanent_location" label="Permanent Location">
+          <Input placeholder="Enter permanent location"/>
+        </Form.Item>
+
+        <Form.Item name="qualification" label="Qualification">
+          <Input placeholder="Enter qualification"/>
+        </Form.Item>
+
+        <Form.Item name="reference" label="Reference">
+          <Input placeholder="Enter reference(eg., LinkedIn, Internal"/>
+        </Form.Item>
+
         {/* 🔥 Position & Department */}
         <Form.Item name="position" label="Position" rules={[{ required: true }]}>
           <Select placeholder="Select position">
@@ -188,7 +252,7 @@ const CandidateForm = () => {
 
         <Form.Item name="department" label="Department" rules={[{ required: true }]}>
           <Select placeholder="Select department">
-            {["IT", "EMDB", "Accounts", "Financial", "Python"].map((dept) => (
+            {["IT", "EMDB", "Accounts", "Financial", "Python","Engineering"].map((dept) => (
               <Option key={dept} value={dept}>
                 {dept}
               </Option>

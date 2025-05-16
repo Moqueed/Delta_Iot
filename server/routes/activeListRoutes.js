@@ -6,6 +6,7 @@ const Candidate = require("../models/Candidate");
 const Rejected = require("../models/Rejected");
 const nodemailer = require("nodemailer");
 const { TotalMasterData, AboutToJoin, NewlyJoined, BufferData } = require("../models/TotalData");
+const sequelize = require("../config/database");
 
 // Mail setup
 const transporter = nodemailer.createTransport({
@@ -32,6 +33,162 @@ router.put("/change-status/:email", async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 });
+
+
+//add to activelist
+router.post("/add-active-list", async (req, res) => {
+  try {
+    let {
+      candidate_id,
+      candidate_name,
+      candidate_email_id,
+      position,
+      department,
+      progress_status,
+      entry_date,
+      HR_name,
+      HR_mail,
+      comments,
+      attachments,
+      skills,
+      contact_number,
+      current_company,
+    } = req.body;
+
+    if (!candidate_id) {
+      return res.status(400).json({ message: "candidate_id is required" });
+    }
+
+    if (typeof skills === "string") {
+      skills = skills.split(",").map((s) => s.trim());
+    }
+
+    const formattedEntryDate = entry_date
+      ? new Date(entry_date).toISOString().slice(0, 19).replace("T", " ")
+      : null;
+
+    const newEntry = await ActiveList.create({
+      candidate_id,
+      candidate_name,
+      candidate_email_id,
+      position,
+      department,
+      progress_status,
+      entry_date: formattedEntryDate,
+      HR_name,
+      HR_mail,
+      comments,
+      attachments,
+      skills,
+      contact_number,
+      current_company,
+    });
+
+    res.status(201).json({ message: "Candidate added to Active List", data: newEntry });
+  } catch (error) {
+    console.error("Error inserting into Active List:", error);
+    res.status(500).json({ message: "Failed to add candidate to Active List", error });
+  }
+});
+
+
+
+//fetch all activelist candidates
+router.get("/fetch", async(req, res) => {
+  try{
+    const candidates = await ActiveList.findAll();
+    res.status(200).json(candidates);
+  } catch(error){
+    console.error(" Error Fetching active list:", error);
+    res.status(500).json({error: "Failed to fetch active list"})
+  }
+});
+
+//update active list
+router.put("/update-active-list/:candidate_id", async (req, res) => {
+  const { candidate_id } = req.params;
+  const {
+    HR_name = "",
+    HR_mail = "",
+    candidate_name = "",
+    candidate_email_id = "",
+    contact_number = "",
+    current_company = "",
+    current_location = "",
+    permanent_location = "",
+    qualification = "",
+    reference = "",
+    skills = [],
+    position = "",
+    department = "",
+    progress_status = "",
+    entry_date = null,
+    comments = "",
+    attachments = "",
+    profile_stage = "open",
+  } = req.body;
+
+  try {
+    const [existing] = await sequelize.query(
+      "SELECT * FROM activelist WHERE candidate_id = ?",
+      { replacements: [candidate_id] }
+    );
+
+    if (existing.length === 0) {
+      return res.status(404).json({ message: "Candidate not found in Active List" });
+    }
+
+    const formattedEntryDate = entry_date
+      ? new Date(entry_date).toISOString().slice(0, 19).replace("T", " ")
+      : null;
+
+    const formattedSkills = Array.isArray(skills)
+      ? skills
+      : typeof skills === "string"
+      ? skills.split(",").map((s) => s.trim())
+      : [];
+
+    await sequelize.query(
+      `UPDATE activelist SET
+        HR_name = ?, HR_mail = ?, candidate_name = ?, candidate_email_id = ?, contact_number = ?,
+        current_company = ?, current_location = ?, permanent_location = ?, qualification = ?, reference = ?,
+        skills = ?, position = ?, department = ?, progress_status = ?, entry_date = ?, comments = ?,
+        attachments = ?, profile_stage = ?
+      WHERE candidate_id = ?`,
+      {
+        replacements: [
+          HR_name,
+          HR_mail,
+          candidate_name,
+          candidate_email_id,
+          contact_number,
+          current_company,
+          current_location,
+          permanent_location,
+          qualification,
+          reference,
+          JSON.stringify(formattedSkills),
+          position,
+          department,
+          progress_status,
+          formattedEntryDate,
+          comments,
+          attachments,
+          profile_stage,
+          candidate_id,
+        ],
+      }
+    );
+
+    res.status(200).json({ message: "Active List updated successfully" });
+  } catch (err) {
+    console.error("Error updating Active List:", err);
+    res.status(500).json({ message: "Server error updating Active List" });
+  }
+});
+
+
+
 
 // ✅ HR Request review for Admin
 router.put("/request-review/:email", async (req, res) => {
@@ -316,7 +473,7 @@ router.put("/about-to-join/:id", async (req, res) => {
   }
 });
 
-//About to Join
+//Newly Joined
 const newlyJoined = ["joined"]; // Make sure it's lowercase
 
 router.put("/newly-joined/:id", async (req, res) => {

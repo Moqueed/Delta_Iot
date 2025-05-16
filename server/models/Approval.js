@@ -65,29 +65,29 @@ Approval.belongsTo(ActiveList, { foreignKey: "active_list_id", as: "related_acti
 
 // Optional: Move hook logic to controller instead for more control
 // If you still want to update ActiveList & insert to Rejected here, keep this:
-Approval.afterUpdate(async (approval) => {
-  try {
-    const { approval_status, candidate_name, requested_progress_status, comments, approved_by } = approval;
+// Approval.afterUpdate(async (approval) => {
+//   try {
+//     const { approval_status, candidate_name, requested_progress_status, comments, approved_by } = approval;
 
-    if (approval_status === "Approved") {
-      await ActiveList.update(
-        { progress_status: requested_progress_status },
-        { where: { id: approval.active_list_id } }
-      );
+//     if (approval_status === "Approved") {
+//       await ActiveList.update(
+//         { progress_status: requested_progress_status },
+//         { where: { id: approval.active_list_id } }
+//       );
 
-      console.log(`✅ ActiveList updated for Candidate: ${candidate_name}`);
-    } else if (approval_status === "Rejected") {
-      const Rejected = require("./Rejected");
-      await Rejected.create({
-        ...approval.dataValues,
-        rejection_comments: comments,
-      });
+//       console.log(`✅ ActiveList updated for Candidate: ${candidate_name}`);
+//     } else if (approval_status === "Rejected") {
+//       const Rejected = require("./Rejected");
+//       await Rejected.create({
+//         ...approval.dataValues,
+//         rejection_comments: comments,
+//       });
 
-      console.log(`🚫 Candidate ${candidate_name} moved to Rejected table`);
-    }
-  } catch (error) {
-    console.error("❌ Error processing approval logic:", error);
-  }
-});
+//       console.log(`🚫 Candidate ${candidate_name} moved to Rejected table`);
+//     }
+//   } catch (error) {
+//     console.error("❌ Error processing approval logic:", error);
+//   }
+// });
 
 module.exports = Approval;

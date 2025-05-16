@@ -4,14 +4,16 @@ const Candidate = require("../models/Candidate");
 const ActiveList = require("../models/ActiveList");
 // const TotalMasterData = require("../models/TotalData");
 // const AboutToJoin = require("../models/TotalData");
-const NewlyJoined = require("../models/TotalData");
+
 // const BufferData = require("../models/TotalData");
 const Rejected = require("../models/Rejected");
+const { NewlyJoined } = require("../models/TotalData");
 
 // ✅ Add new candidate and sync to ActiveList
 router.post("/add-candidate", async (req, res) => {
+  console.log("Received data:", req.body);
   try {
-    const {
+    let {
       HR_name,
       HR_mail,
       candidate_name,
@@ -22,6 +24,7 @@ router.post("/add-candidate", async (req, res) => {
       permanent_location,
       qualification,
       experience,
+      skills,
       current_ctc,
       expected_ctc,
       band,
@@ -32,6 +35,11 @@ router.post("/add-candidate", async (req, res) => {
       status_date,
       entry_date,
     } = req.body;
+
+     // ✅ Convert comma-separated skills string to array
+    if (typeof skills === "string") {
+      skills = skills.split(",").map((skill) => skill.trim());
+    }
 
     // ❗ Validation
     if (
@@ -57,6 +65,7 @@ router.post("/add-candidate", async (req, res) => {
       permanent_location,
       qualification,
       experience,
+      skills,
       current_ctc,
       expected_ctc,
       band,
@@ -81,6 +90,7 @@ router.post("/add-candidate", async (req, res) => {
       permanent_location,
       qualification,
       experience,
+      skills,
       current_ctc,
       expected_ctc,
       band,
