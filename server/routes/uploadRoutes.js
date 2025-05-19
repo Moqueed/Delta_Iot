@@ -86,8 +86,7 @@ router.post("/upload/:email", upload.single("resume"), async (req, res) => {
         position: candidate.position,
         department: candidate.department,
         skills: candidate.skills,
-        previous_progress_status: candidate.progress_status, // You may adjust this logic as needed
-        requested_progress_status: candidate.progress_status, // Adjust as needed
+        progress_status: candidate.progress_status,
         profile_stage: candidate.profile_stage,
         status_date: candidate.status_date,
         contact_number: candidate.contact_number,

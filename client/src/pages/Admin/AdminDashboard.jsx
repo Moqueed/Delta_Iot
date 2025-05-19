@@ -58,6 +58,8 @@ const AdminDashboard = () => {
           const routeMap = {
             "total-data": "/total-data",
             "active-positions": "/admin-dashboard/active-positions",
+            "approvals": "/admin-dashboard/approvals",
+            "active-list": "/admin-dashboard/active-list",
           };
         
           navigate(routeMap[section.key] || `/hr-dashboard/${section.key}`);

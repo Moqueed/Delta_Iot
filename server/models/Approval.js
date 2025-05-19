@@ -15,10 +15,10 @@ const Approval = sequelize.define("Approval", {
       model: "activeList",
       key: "id",
     },
-    approval_status: {
-      type: DataTypes.ENUM("Pending", "Approved", "Rejected"),
-      defaultValue: "Pending"
-    },
+  },
+  approval_status: {
+    type: DataTypes.ENUM("Pending", "Approved", "Rejected"),
+    defaultValue: "Pending"
   },
   HR_name: { type: DataTypes.STRING, allowNull: false },
   HR_mail: { type: DataTypes.STRING, allowNull: false },
@@ -33,9 +33,32 @@ const Approval = sequelize.define("Approval", {
     allowNull: false,
   },
   skills: { type: DataTypes.TEXT },
-  previous_progress_status: { type: DataTypes.STRING, allowNull: false },
-  requested_progress_status: { type: DataTypes.STRING, allowNull: false },
-  profile_stage: { type: DataTypes.STRING },
+  progress_status: {
+      type: DataTypes.ENUM(
+        "Application Received",
+        "Phone Screening",
+        "L1 Interview",
+        "Yet to Share",
+        "L2 Interview",
+        "Shared with Client",
+        "Final Discussion",
+        "Offer Released",
+        "Joined",
+        "Declined Offer",
+        "Rejected",
+        "Withdrawn",
+        "No Show",
+        "Buffer",
+        "Hold",
+        "HR Round Cleared"
+      ),
+      allowNull: false,
+    },
+  profile_stage: {
+      type: DataTypes.ENUM("open", "closed"),
+      allowNull: true,
+      defaultValue: "open",
+    },
   status_date: { type: DataTypes.DATEONLY, allowNull: false },
   candidate_email_id: { type: DataTypes.STRING, allowNull: false },
   contact_number: { type: DataTypes.STRING, allowNull: false },
@@ -51,13 +74,13 @@ const Approval = sequelize.define("Approval", {
   notice_period: { type: DataTypes.STRING },
   comments: { type: DataTypes.TEXT },
   attachments: { type: DataTypes.STRING },
-  approval_status: { type: DataTypes.ENUM("Pending", "Approved", "Rejected"), defaultValue: "Pending" },
   requested_by: { type: DataTypes.STRING, allowNull: false },
   approved_by: { type: DataTypes.STRING },
 }, {
   tableName: "approvals",
   timestamps: false
 });
+
 
 // Setup association
 ActiveList.hasMany(Approval, { foreignKey: "active_list_id", as: "active_list_approvals" });

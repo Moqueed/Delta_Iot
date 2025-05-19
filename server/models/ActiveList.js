@@ -84,6 +84,10 @@ const ActiveList = sequelize.define(
       allowNull: true,
       defaultValue: "open",
     },
+    status_date: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
 
     entry_date: {
       type: DataTypes.DATE,

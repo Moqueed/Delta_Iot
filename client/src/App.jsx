@@ -10,6 +10,7 @@ import ActivePositions from "./pages/Admin/ActivePositions";
 import HRVacancy from "./pages/HR/HRVacancy";
 import CandidateForm from "./pages/HR/Candidates";
 import ActiveListPage from "./pages/HR/ActiveListPage";
+import ApprovalsPage from "./pages/Admin/ApprovalsPage";
 
 function App() {
   return (
@@ -44,7 +45,7 @@ function App() {
         <Route
           path="/admin-dashboard/add-candidate"
           element={
-            <ProtectedRoute role="HR">
+            <ProtectedRoute role="Admin">
               <CandidateForm />
             </ProtectedRoute>
           }
@@ -54,6 +55,22 @@ function App() {
           element={
             <ProtectedRoute role="HR">
               <ActiveListPage />
+            </ProtectedRoute>
+          }
+        />
+          <Route
+          path="/admin-dashboard/active-list"
+          element={
+            <ProtectedRoute role="Admin">
+              <ActiveListPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin-dashboard/approvals"
+          element={
+            <ProtectedRoute role="Admin">
+              <ApprovalsPage/>
             </ProtectedRoute>
           }
         />
