@@ -1,6 +1,7 @@
 import React from "react";
 import { Card, Typography } from "antd";
 import { DatabaseOutlined, UserAddOutlined, CalendarOutlined, ClockCircleOutlined, CloseCircleOutlined } from "@ant-design/icons";
+import { useNavigate } from "react-router-dom";
 
 const { Title } = Typography;
 
@@ -12,6 +13,16 @@ const TotalDataPage = () => {
     { title: "Buffer Data", color: "#D8BFD8", icon: <ClockCircleOutlined style={{ fontSize: "50px", color: "#6A5ACD" }} /> },
     { title: "Rejected Data", color: "#FFB6C1", icon: <CloseCircleOutlined style={{ fontSize: "50px", color: "#DC143C" }} /> },
   ];
+
+  const navigate = useNavigate();
+
+  const handleCardClick = (section) => {
+    if(section.title === "Rejected Data"){
+      navigate("/total-data/rejected-data");
+    } else if(section.title === "Total Master Data"){
+      navigate("/total-data/total-master-data");
+    }
+  };
 
   const cardStyle = {
     width: "180px",
@@ -68,6 +79,7 @@ const TotalDataPage = () => {
           style={{ ...cardStyle, backgroundColor: sections[0].color }}
           onMouseEnter={handleHover}
           onMouseLeave={handleLeave}
+          onClick={() => handleCardClick(sections[0])}
         >
           {sections[0].icon}
           <div style={{ marginTop: "10px" }}>{sections[0].title}</div>
@@ -100,6 +112,7 @@ const TotalDataPage = () => {
           style={{ ...cardStyle, backgroundColor: sections[4].color }}
           onMouseEnter={handleHover}
           onMouseLeave={handleLeave}
+          onClick={() => handleCardClick(sections[4])}
         >
           {sections[4].icon}
           <div style={{ marginTop: "10px" }}>{sections[4].title}</div>

@@ -6,74 +6,20 @@ const Candidate = require("../models/Candidate");
 const Rejected = require("../models/Rejected");
 
 
-// ✅ Admin or HR approves/rejects progress status change
-router.put("/approve-status-change/:email", async (req, res) => {
-  try {
-    const { approval_status, progress_status, rejection_reason } = req.body;
-    const email = req.params.email;
-
-    const approvalRequest = await Approval.findOne({
-      where: { candidate_email_id: email, approval_status: "Pending" },
-    });
-
-    if (!approvalRequest) {
-      return res.status(404).json({ error: "No pending approval request found" });
-    }
-
-    if (approval_status === "Approved") {
-      // ✅ Update Candidate and ActiveList with the new progress_status
-      await Candidate.update(
-        { progress_status: approvalRequest.requested_progress_status },
-        { where: { candidate_email_id: email } }
-      );
-
-      await ActiveList.update(
-        { progress_status: approvalRequest.requested_progress_status },
-        { where: { candidate_email_id: email } }
-      );
-
-      // ✅ Remove the approval request after success
-      await approvalRequest.destroy();
-      return res.status(200).json({ message: "Candidate status approved and updated" });
-    }
-
-    if (approval_status === "Rejected") {
-      if ( !rejection_reason) {
-        return res.status(400).json({ error: "Rejected by, role, and reason are required" });
-      }
-
-      // ✅ Move the candidate to the Rejected table with a rejection reason
-      await Rejected.create({
-        candidate_email_id: approvalRequest.candidate_email_id,
-        candidate_name: approvalRequest.candidate_name,
-        position: approvalRequest.position,
-        department: approvalRequest.department,
-        progress_status: progress_status,
-        rejection_reason, // ✅ Capture rejection reason
-        status_date: new Date(),
-      });
-
-      // ✅ Remove the candidate from ActiveList and Approval tables
-      await ActiveList.destroy({ where: { candidate_email_id: email } });
-      await approvalRequest.destroy();
-
-      return res.status(200).json({ message: "Candidate moved to Rejected list with reason" });
-    }
-
-    return res.status(400).json({ error: "Invalid approval status" });
-  } catch (error) {
-    console.error("❌ Error handling status change:", error);
-    res.status(500).json({ error: "Internal server error" });
-  }
-});
-
-
 //Rejected from ActiveList
-const rejectedStatuses = ["rejected","declined offer", "no show", "withdrawn"]; // Add any other rejected statuses if necessary
+const rejectedStatuses = ["rejected", "declined offer", "no show", "withdrawn"]; // Add any other rejected statuses if necessary
 
 router.put("/rejected-data/:id", async (req, res) => {
   const { id } = req.params;
-  const {  progress_status, rejection_reason } = req.body;  // Ensure status_reason is included in the body
+  const { progress_status, rejection_reason } = req.body; // Ensure status_reason is included in the body
+
+   if (!progress_status) {
+    return res.status(400).json({ message: "progress_status is required" });
+  }
+
+  if (typeof progress_status !== "string") {
+    return res.status(400).json({ message: "Invalid progress_status type" });
+  }
 
   try {
     const activeRecord = await ActiveList.findByPk(id);
@@ -81,6 +27,7 @@ router.put("/rejected-data/:id", async (req, res) => {
     if (!activeRecord) {
       return res.status(404).json({ message: "ActiveList record not found" });
     }
+      
 
     if (rejectedStatuses.includes(progress_status.toLowerCase())) {
       // Update progress_status in ActiveList
@@ -100,7 +47,8 @@ router.put("/rejected-data/:id", async (req, res) => {
         );
 
         return res.status(200).json({
-          message: "Progress status updated in both ActiveList and Rejected Data",
+          message:
+            "Progress status updated in both ActiveList and Rejected Data",
         });
       }
 
@@ -129,5 +77,84 @@ router.put("/rejected-data/:id", async (req, res) => {
   }
 });
 
+
+// ✅ Admin rejects progress status change
+router.put("/approve-status-rejected/:email", async (req, res) => {
+  try {
+    const { approval_status, progress_status, rejection_reason } = req.body;
+    const email = req.params.email;
+
+    const approvalRequest = await Approval.findOne({
+      where: { candidate_email_id: email, approval_status: "Pending" },
+    });
+
+    if (!approvalRequest) {
+      return res
+        .status(404)
+        .json({ error: "No pending approval request found" });
+    }
+
+    // if (approval_status === "Approved") {
+    //   // ✅ Update Candidate and ActiveList with the new progress_status
+    //   // await Candidate.update(
+    //   //   { progress_status: approvalRequest.requested_progress_status },
+    //   //   { where: { candidate_email_id: email } }
+    //   // );
+
+    //   await ActiveList.update(
+    //     { progress_status },
+    //     { where: { candidate_email_id } }
+    //   );
+
+    //   // ✅ Remove the approval request after success
+    //   await approvalRequest.destroy();
+    //   return res.status(200).json({ message: "Candidate status approved and updated" });
+    // }
+
+    if (approval_status === "Rejected") {
+      if (!rejection_reason) {
+        return res
+          .status(400)
+          .json({ error: "Rejected by, role, and reason are required" });
+      }
+
+      // ✅ Move the candidate to the Rejected table with a rejection reason
+      await Rejected.create({
+        candidate_email_id: approvalRequest.candidate_email_id,
+        candidate_name: approvalRequest.candidate_name,
+        position: approvalRequest.position,
+        department: approvalRequest.department,
+        progress_status: progress_status,
+        rejection_reason, // ✅ Capture rejection reason
+        status_date: new Date(),
+      });
+
+      // ✅ Remove the candidate from ActiveList and Approval tables
+      await ActiveList.destroy({ where: { candidate_email_id: email } });
+      await approvalRequest.destroy();
+
+      return res
+        .status(200)
+        .json({ message: "Candidate moved to Rejected list with reason" });
+    }
+
+    return res.status(400).json({ error: "Invalid approval status" });
+  } catch (error) {
+    console.error("❌ Error handling status change:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+router.get("/fetch", async (req, res) => {
+  try {
+    const rejectedCandidates = await Rejected.findAll({
+      order: [["status_date", "DESC"]],
+    });
+    res.status(200).json(rejectedCandidates);
+  } catch (error) {
+    console.error("❌ Error fetching rejected data:", error);
+    res.status(500).json({ message: "Failed to fetch rejected data" });
+  }
+});
 
 module.exports = router;

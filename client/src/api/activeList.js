@@ -71,6 +71,7 @@ export const requestReview = async (email, progressStatus, requestBy) => {
 //   }
 // };
 
+
 //HR mail to manager
 export const notifyManager = async (candidateId, progressStatus) => {
   try {
@@ -109,6 +110,7 @@ export const UpdateTotalMasterData = async (id, progressStatus) => {
     message.error(errorMsg);
   }
 };
+
 
 //About to Join
 export const UpdateAboutToJoin = async (id, progressStatus) => {
@@ -159,5 +161,15 @@ export const updateBufferData = async (id, progressStatus, statusReason) => {
     const errorMsg =
       error.response?.data?.message || "Failed to update Buffer data status.";
     message.error(errorMsg);
+  }
+};
+
+export const deleteActiveCandidate = async (candidateId) => {
+  try {
+    const response = await axiosInstance.delete(`/api/activelist/delete/${candidateId}`);
+    return response.data;
+  } catch (error) {
+    console.error("❌ Error deleting candidate:", error);
+    throw error;
   }
 };

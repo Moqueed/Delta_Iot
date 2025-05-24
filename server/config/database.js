@@ -14,7 +14,7 @@ const sequelize = new Sequelize(
 );
 
 // Check if the connection is established successfully
-sequelize.sync({alter: true})
+sequelize.sync()
   .then(() => {
     console.log('Database connection established successfully.');
   })

@@ -11,6 +11,8 @@ import HRVacancy from "./pages/HR/HRVacancy";
 import CandidateForm from "./pages/HR/Candidates";
 import ActiveListPage from "./pages/HR/ActiveListPage";
 import ApprovalsPage from "./pages/Admin/ApprovalsPage";
+import RejectedDataPage from "./pages/HR/RejectedPage";
+import TotalMasterDataPage from "./pages/HR/TotalMasterDataPage";
 
 function App() {
   return (
@@ -74,6 +76,9 @@ function App() {
             </ProtectedRoute>
           }
         />
+
+        <Route path="/total-data/rejected-data" element={<RejectedDataPage/>}/>
+        <Route path="/total-data/total-master-data" element={<TotalMasterDataPage/>}/>
       </Routes>
     </>
   );
