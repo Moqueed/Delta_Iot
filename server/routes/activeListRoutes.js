@@ -440,12 +440,14 @@ router.put("/total-master-data/:id", async (req, res) => {
       );
 
       return res.status(200).json({
-        message: "Progress status updated in both ActiveList and About To Join",
+        message: "Progress status updated in both ActiveList",
       });
     }
     // If new status is in the allowed list, move to TotalMasterData
     if (totalMaster.includes(progress_status.toLowerCase())) {
       await TotalMasterData.create({
+        HR_name: activeRecord.HR_name,
+        HR_mail: activeRecord.HR_mail,
         candidate_id: activeRecord.candidate_id,
         candidate_name: activeRecord.candidate_name,
         candidate_email_id: activeRecord.candidate_email_id,
@@ -454,8 +456,6 @@ router.put("/total-master-data/:id", async (req, res) => {
         progress_status: activeRecord.progress_status,
         status_date: today,
         entry_date: activeRecord.entry_date || today,
-        HR_name: activeRecord.HR_name,
-        HR_mail: activeRecord.HR_mail,
       });
 
       return res.status(200).json({

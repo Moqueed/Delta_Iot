@@ -12,8 +12,8 @@ router.post("/add", async (req, res) => {
   }
 });
 
-// Get all HRs
-router.get("/", async (req, res) => {
+// Get all HR's
+router.get("/fetch", async (req, res) => {
   try {
     const hrList = await HR.findAll();
     res.status(200).json(hrList);
@@ -22,4 +22,26 @@ router.get("/", async (req, res) => {
   }
 });
 
+// Update HR (Edit + Save)
+router.put("/update/:id", async (req, res) => {
+  const { id } = req.params;
+  try {
+    const [updated] = await HR.update(req.body, {
+      where: { id },
+    });
+
+    if (updated) {
+      const updatedHR = await HR.findByPk(id);
+      res.status(200).json({ message: "HR updated successfully!", hr: updatedHR });
+    } else {
+      res.status(404).json({ message: "HR not found for update" });
+    }
+  } catch (error) {
+    res.status(500).json({ message: "Error updating HR", error: error.message });
+  }
+});
+
+
 module.exports = router;
+
+

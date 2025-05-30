@@ -6,6 +6,9 @@ import {
   requestReview,
   updateActiveList,
   UpdateTotalMasterData,
+  UpdateAboutToJoin,
+  updateNewlyJoined,
+  updateBufferData,
 } from "../../api/activeList";
 import { updateRejectedCandidate } from "../../api/rejected";
 
@@ -30,12 +33,13 @@ const CandidateForm = ({ candidate, onUpdate }) => {
       const status = values.progress_status.toLowerCase();
 
       if (rejectedStatuses.includes(status)) {
+        // Move to Rejected
         await updateRejectedCandidate(
           candidate.id,
           values.progress_status,
           values.rejection_reason || "Moved to rejected from Active List"
         );
-        await deleteActiveCandidate(candidate.candidate_id);
+        await deleteActiveCandidate(candidate.candidate.id);
         message.success(
           "Candidate moved to rejected and removed from Active List"
         );
@@ -49,10 +53,25 @@ const CandidateForm = ({ candidate, onUpdate }) => {
           "shared with client",
         ].includes(status)
       ) {
+        // Move to Total Master Data
         await UpdateTotalMasterData(candidate.id, status);
-        // await deleteActiveCandidate(candidate.candidate_id); //Remove from activeList
-        message.success("candidate moved to Total master data");
-      }else {
+        message.success("Candidate moved to Total Master Data");
+      } else if (
+        ["offer released", "final discussion", "hr round cleared"].includes(status)
+      ) {
+        // Move to About To Join
+        await UpdateAboutToJoin(candidate.id, status);
+        message.success("Candidate moved to About To Join");
+      } else if (["joined"].includes(status)) {
+        // Move to NewlyJoined
+        await updateNewlyJoined(candidate.id, status);
+        message.success("Candidate moved to Newly Joined");
+         } else if (["hold","buffer"].includes(status)) {
+        // Move to BufferData
+        await updateBufferData(candidate.id, status);
+        message.success("Candidate moved to Buffer Data");
+      } else {
+        // Just update in Active List
         await updateActiveList({
           ...values,
           candidate_id: candidate.candidate_id,
@@ -60,7 +79,7 @@ const CandidateForm = ({ candidate, onUpdate }) => {
         message.success("Candidate updated successfully");
       }
 
-      onUpdate(); // Refresh the list
+      onUpdate(); // Refresh list
     } catch (error) {
       console.error("Error updating candidate:", error);
       message.error("Error updating candidate");

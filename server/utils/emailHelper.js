@@ -1,20 +1,20 @@
 const nodemailer = require('nodemailer');
 const getPositionAssignedTemplate = require('./email_templates/positionAssignedTemplate');
-const assignCandidateTemplate = require('./email_templates/assignCandidateTemplate');
 require('dotenv').config();
 
-const sendPositionMail = async (hrEmail, positionTitle, positionDescription) => {
+//Assign a position to HR
+const sendPositionMail = async ( positionTitle, positionDescription) => {
   const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
-      user: process.env.EMAIL_USER,
+      user: process.env.EMAIL_ADMIN,
       pass: process.env.EMAIL_PASS,
     },
   });
 
   const mailOptions = {
-    from: process.env.EMAIL_USER,
-    to: hrEmail,
+    from: process.env.EMAIL_ADMIN,
+    to: process.env.USER,
     subject: `New Position Allotted: ${positionTitle}`,
     html: getPositionAssignedTemplate(positionTitle, positionDescription),
   };
@@ -22,29 +22,24 @@ const sendPositionMail = async (hrEmail, positionTitle, positionDescription) => 
   await transporter.sendMail(mailOptions);
 };
 
-const sendAssignmentMail = async (data) => {
-  const { hrEmail, hrName, candidateName, candidateEmail, position, contactNumber, comments } = data;
 
-  const htmlTemplate = assignCandidateTemplate({
-    hrName,
-    candidateName,
-    candidateEmail,
-    position,
-    contactNumber,
-    comments,
-  });
+//assign candidate to HR
+const path = require("path");
+
+const sendAssignmentMail = async (data) => {
+  const { hrName, candidateName, candidateEmail, position, contactNumber, resumePath, comments } = data;
 
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
-    user: process.env.EMAIL_USER,
+    user: process.env.EMAIL_ADMIN,
     pass: process.env.EMAIL_PASS,
   }
 })
 
   const mailOptions = {
-    from: process.env.EMAIL_USER,
-    to: hrEmail,
+    from: process.env.EMAIL_ADMIN,
+    to: process.env.EMAIL_USER,
     subject: `Candidate Assigned: ${candidateName}`,
     html: `
       <h3>Hello ${hrName},</h3>
@@ -58,6 +53,15 @@ const transporter = nodemailer.createTransport({
       </ul>
       <p>Please review the details in your dashboard.</p>
     `,
+
+    attachments: resumePath
+    ? [
+      {
+        filename: path.basename(resumePath),
+        path: resumePath,
+      }
+    ]
+    : [],
   };
 
   await transporter.sendMail(mailOptions);

@@ -8,6 +8,10 @@ const AssignToHR = sequelize.define("AssignToHR", {
     type: DataTypes.STRING,
     allowNull: false,
   },
+   HR_mail: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
   candidate_name: {
     type: DataTypes.STRING,
     allowNull: false,
@@ -37,7 +41,7 @@ const AssignToHR = sequelize.define("AssignToHR", {
 });
 
 // Associations (still keeping for relational queries if needed)
-AssignToHR.belongsTo(HR, { foreignKey: "hr_id" });
+AssignToHR.belongsTo(HR, { foreignKey: "HR_id" });
 AssignToHR.belongsTo(Candidate, { foreignKey: "candidate_id" });
 
 module.exports = AssignToHR;

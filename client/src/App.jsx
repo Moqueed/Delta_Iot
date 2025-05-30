@@ -13,6 +13,12 @@ import ActiveListPage from "./pages/HR/ActiveListPage";
 import ApprovalsPage from "./pages/Admin/ApprovalsPage";
 import RejectedDataPage from "./pages/HR/RejectedPage";
 import TotalMasterDataPage from "./pages/HR/TotalMasterDataPage";
+import AboutToJoinPage from "./pages/HR/AboutToJoinPage";
+import NewlyJoinedPage from "./pages/HR/NewlyJoinedPage";
+import BufferDataPage from "./pages/HR/BufferDataPage";
+import AssignToHrPage from "./pages/Admin/AssignToHrPage";
+import HRPage from "./pages/Admin/HRPage";
+
 
 function App() {
   return (
@@ -76,9 +82,13 @@ function App() {
             </ProtectedRoute>
           }
         />
-
+        <Route path="/admin-dashboard/assign-to-hr" element={<AssignToHrPage/>}/>
         <Route path="/total-data/rejected-data" element={<RejectedDataPage/>}/>
         <Route path="/total-data/total-master-data" element={<TotalMasterDataPage/>}/>
+        <Route path="/total-data/about-to-join" element={<AboutToJoinPage/>}/>
+        <Route path="/total-data/newly-joined" element={<NewlyJoinedPage/>}/>
+        <Route path="/total-data/buffer-data" element={<BufferDataPage/>}/>
+        <Route path="/admin-dashboard/hr-list" element={<HRPage/>}/>
       </Routes>
     </>
   );

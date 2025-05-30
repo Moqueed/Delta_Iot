@@ -20,19 +20,11 @@ const HR = sequelize.define(
         isEmail: true,
       },
     },
-    title: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
     contact_number: {
       type: DataTypes.STRING,
       allowNull: false,
     },
     role: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    department: {
       type: DataTypes.STRING,
       allowNull: false,
     },
