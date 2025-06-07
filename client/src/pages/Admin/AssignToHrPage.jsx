@@ -1,92 +1,241 @@
-import { Form, Input, Button, Upload, message, Select } from "antd";
-import { UploadOutlined } from "@ant-design/icons";
+import { Form, Input, Button, Upload, message, Select, Row, Col } from "antd";
+import {
+  HomeOutlined,
+  LogoutOutlined,
+  UploadOutlined,
+} from "@ant-design/icons";
 import { useState } from "react";
-import { assignCandidateToHR } from "../../api/assignToHr";
-
-
+import { assignCandidateToHR, searchAssignments } from "../../api/assignToHr";
+import "./AssignToHrPage.css";
+import { Link } from "react-router-dom";
+const { Option } = Select;
 
 const AssignToHrPage = () => {
   const [form] = Form.useForm();
   const [file, setFile] = useState(null);
+  const [searchError, setSearchError] = useState(null);
+  const [searchForm] = Form.useForm();
 
-const handleSubmit = async (values) => {
-  const formData = new FormData();
-  formData.append("HR_mail", values.hr_email); // ✅ backend expects HR email
-  formData.append("HR_name", values.hr_name);  // ✅ backend expects HR name
-  formData.append("candidate_name", values.candidate_name); // ✅
-  formData.append("candidate_email_id", values.candidate_email); // ✅
-  formData.append("position", values.position);
-  formData.append("contact_number", values.contact_number || "");
-  formData.append("comments", values.comments || "");
+    const handleLogout = () => {
+      localStorage.clear();
+      message.success("Logout successfully");
+      window.location.href = "/login";
+    }
 
-  if (file) {
-    formData.append("attachments", file); // ✅ backend expects "attachments"
-  }
+  const handleSearch = async () => {
+    const values = searchForm.getFieldsValue();
+    const search_input = values.search_input?.toString().trim();
 
-  try {
-    const res = await assignCandidateToHR(formData);
-    message.success(res.message);
-    form.resetFields();
-    setFile(null);
-  } catch (err) {
-    console.error(err);
-    message.error(err.message || "Failed to assign candidate");
-  }
-};
+    if (!search_input) {
+      console.log("Search input is empty or invalid");
+      return;
+    }
+
+    console.log("Searching for:", search_input);
+
+    const filters = {};
+    if (/\S+@\S+\.\S+/.test(search_input)) {
+      filters.candidate_email = search_input;
+    } else {
+      filters.contact_number = search_input;
+    }
+
+    try {
+      const result = await searchAssignments(filters);
+      if (result && result.length > 0) {
+        setSearchError(
+          "Candidate already exists. Please verify before proceeding."
+        );
+      } else {
+        setSearchError(null);
+        message.success("No duplicate found. You can continue.");
+      }
+    } catch (error) {
+      console.error(error);
+      setSearchError("search failed");
+      message.error("Search failed");
+    }
+  };
+
+  const handleSubmit = async (values) => {
+    const formData = new FormData();
+    formData.append("HR_mail", values.hr_email); // ✅ backend expects HR email
+    formData.append("HR_name", values.hr_name); // ✅ backend expects HR name
+    formData.append("candidate_name", values.candidate_name); // ✅
+    formData.append("candidate_email_id", values.candidate_email); // ✅
+    formData.append("position", values.position);
+    formData.append("contact_number", values.contact_number || "");
+    formData.append("comments", values.comments || "");
+
+    console.log("Form values:", values);
+
+    if (file) {
+      formData.append("attachments", file); // ✅ backend expects "attachments"
+    }
+
+    try {
+      const res = await assignCandidateToHR(formData);
+      message.success(res.message);
+      form.resetFields();
+      setFile(null);
+    } catch (err) {
+      console.error(err);
+      message.error(err.message || "Failed to assign candidate");
+    }
+  };
 
   return (
-    <Form form={form} layout="vertical" onFinish={handleSubmit}>
-      <Form.Item label="HR Email" name="hr_email" rules={[{ required: true }]}>
-        <Input />
-      </Form.Item>
+    <>
+    <div className="assign-to-hr-container">
+      <div className="Assign-header">
+        <div className="header-left">
+          <img src="/logo.png" alt="logo" className="logo" />
+          <Link to="/admin-dashboard">
+            <HomeOutlined className="home-icon" />
+          </Link>
+           </div>
 
-      <Form.Item label="HR Name" name="hr_name" rules={[{ required: true }]}>
-        <Input />
-      </Form.Item>
+        <h2>Assign To HR</h2>
 
-      <Form.Item label="Candidate Name" name="candidate_name" rules={[{ required: true }]}>
-        <Input />
-      </Form.Item>
+        <div className="header-right">
+          <span className="welcome-text">Welcome: Moqueed Ahmed</span>
+          <Button
+            icon={<LogoutOutlined />}
+            onClick={handleLogout}
+            type="primary"
+            danger
+            size="small"
+            style={{ marginLeft: "15px" }}
+          >
+            Logout
+          </Button>
+         </div>
+       </div>
+      </div>  
 
-      <Form.Item label="Candidate Email" name="candidate_email" rules={[{ required: true }]}>
-        <Input />
-      </Form.Item>
-
-       <Form.Item name="position" label="Position" rules={[{ required: true }]}>
-          <Select placeholder="Select position">
-            {["Python Developer", "EMD Developer", "Intern", "Trainee", "C++ Developer", "Accounts", "Developer"].map((pos) => (
-              <Option key={pos} value={pos}>
-                {pos}
-              </Option>
-            ))}
-          </Select>
+      <div className="main-content">
+      <Form
+        form={searchForm}
+        layout="inline"
+        className="search-form"
+        onFinish={handleSearch}
+      >
+        <Form.Item name="search_input" label="Candidate Email / Contact">
+          <Input placeholder="Enter candidate email or contact number" />
         </Form.Item>
+        <Form.Item>
+          <Button type="primary" htmlType="submit">
+            Search
+          </Button>
+        </Form.Item>
+      </Form>
 
-      <Form.Item label="Contact Number" name="contact_number">
-        <Input />
-      </Form.Item>
+      {searchError && <div className="search-error-message">{searchError}</div>}
 
-      <Form.Item label="Comments" name="comments">
-        <Input.TextArea rows={3} />
-      </Form.Item>
+      <Form
+        className="assign-to-hr-form"
+        form={form}
+        layout="vertical"
+        onFinish={handleSubmit}
+      >
+        <div className="form-section">
+          <Form.Item
+            label="HR Email"
+            name="hr_email"
+            rules={[{ required: true, message: "Please enter HR email" }]}
+            className="form-item"
+          >
+            <Input className="input-field" />
+          </Form.Item>
 
-      <Form.Item label="Resume">
-        <Upload
-          beforeUpload={(file) => {
-            setFile(file);
-            return false; // prevent auto upload
-          }}
-          onRemove={() => setFile(null)}
-          fileList={file ? [file] : []}
-        >
-          <Button icon={<UploadOutlined />}>Select Resume</Button>
-        </Upload>
-      </Form.Item>
+          <Form.Item
+            label="HR Name"
+            name="hr_name"
+            rules={[{ required: true, message: "Please enter HR name" }]}
+            className="form-item"
+          >
+            <Input className="input-field" />
+          </Form.Item>
 
-      <Button type="primary" htmlType="submit">
-        send
-      </Button>
-    </Form>
+          <Form.Item
+            label="Candidate Name"
+            name="candidate_name"
+            rules={[{ required: true, message: "Please enter candidate name" }]}
+            className="form-item"
+          >
+            <Input className="input-field" />
+          </Form.Item>
+
+          <Form.Item
+            label="Candidate Email"
+            name="candidate_email"
+            rules={[
+              { required: true, message: "Please enter candidate email" },
+            ]}
+            className="form-item"
+          >
+            <Input className="input-field" />
+          </Form.Item>
+
+          <Form.Item
+            label="Position"
+            name="position"
+            rules={[{ required: true, message: "Please select a position" }]}
+            className="form-item"
+          >
+            <Select placeholder="Select position" className="input-field">
+              {[
+                "Python Developer",
+                "EMD Developer",
+                "Intern",
+                "Trainee",
+                "C++ Developer",
+                "Accounts",
+                "Developer",
+              ].map((pos) => (
+                <Option key={pos} value={pos}>
+                  {pos}
+                </Option>
+              ))}
+            </Select>
+          </Form.Item>
+
+          <Form.Item
+            label="Contact Number"
+            name="contact_number"
+            className="form-item"
+          >
+            <Input className="input-field" />
+          </Form.Item>
+
+          <Form.Item label="Comments" name="comments" className="form-item">
+            <Input.TextArea rows={3} className="input-field" />
+          </Form.Item>
+
+          <Form.Item label="Resume" className="form-item">
+            <Upload
+              beforeUpload={(file) => {
+                setFile(file);
+                return false;
+              }}
+              onRemove={() => setFile(null)}
+              fileList={file ? [{ ...file, uid: file.uid || "1" }] : []}
+            >
+              <Button icon={<UploadOutlined />} className="upload-btn">
+                Select Resume
+              </Button>
+            </Upload>
+          </Form.Item>
+
+          <Form.Item className="form-item">
+            <Button type="primary" htmlType="submit" className="submit-btn">
+              Send
+            </Button>
+          </Form.Item>
+        </div>
+      </Form>
+    </div>
+    </>
   );
 };
 

@@ -1,11 +1,10 @@
 const express = require("express");
 const router = express.Router();
 const {
-  getAllAssignments,
-  assignCandidateToHR,
+  getAllNewCandidates,
   searchCandidate,
 } = require("../controllers/assignToHRController");
-const upload = require("../middleware/uploadMiddleware");
+
 
 // ✅ Assign Candidate to HR
 // router.post("/assigning", async (req, res) => {
@@ -44,7 +43,6 @@ const upload = require("../middleware/uploadMiddleware");
 
 // ✅ Search Assigned HR by Email or Contact
 router.get("/search", searchCandidate);
-router.get("/assignments", getAllAssignments);
-router.post("/assign", upload.single("attachments"), assignCandidateToHR);
+router.get("/fetch", getAllNewCandidates);
 
 module.exports = router;

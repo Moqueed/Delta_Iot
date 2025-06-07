@@ -2,35 +2,15 @@ const Candidate = require("../models/Candidate");
 const AssignToHR = require("../models/AssignToHR");
 const HR = require("../models/HR");
 const { sendAssignmentMail } = require("../utils/emailHelper");
+const AssignedCandidate = require("../models/AssignedCandidate");
 
-//get the candidate
-const getAllAssignments = async (req, res) => {
-  try {
-    const assignments = await AssignToHR.findAll({
-      include: [
-        {
-          model: HR,
-          attributes: ["id", "name", "email"],
-        },
-        {
-          model: Candidate,
-          attributes: ["id", "name", "email"],
-        },
-      ],
-    });
-    res.status(200).json(assignments);
-  } catch (error) {
-    console.error("Error fetching assignments: ", error);
-    res.status(500).json({ error: "Internal server error" });
-  }
-};
 
-//assign a candidate to HR
-const assignCandidateToHR = async (req, res) => {
+const createNewCandidate = async (req, res) => {
   try {
     const {
-      HR_mail,
+      HR_id,
       HR_name,
+      HR_mail,
       candidate_name,
       candidate_email_id,
       position,
@@ -38,40 +18,20 @@ const assignCandidateToHR = async (req, res) => {
       comments,
     } = req.body;
 
-    if (
-      !HR_mail ||
-      !HR_name ||
-      !candidate_name ||
-      !candidate_email_id ||
-      !position
-    ) {
-      return res.status(400).json({ message: "Missing required fields" });
-    }
+    const attachments = req.file ? req.file.filename : null;
 
-    const hr = await HR.findOne({ where: { email: HR_mail } });
-    const candidate = await Candidate.findOne({
-      where: { candidate_email_id },
-    });
-
-    if (!hr || !candidate) {
-      return res.status(404).json({ error: "HR or Candidate not found" });
-    }
-
-    const resumeFile = req.file ? req.file.filename : null;
-
-    const assignment = await AssignToHR.create({
-      HR_id: HR.id,
-      candidate_id: candidate.id,
-      HR_mail,
+    const newCandidate = await AssignedCandidate.create({
+      HR_id,
       HR_name,
+      HR_mail,
       candidate_name,
       candidate_email_id,
       position,
       contact_number,
       comments,
-      attachments: resumeFile,
+      attachments,
     });
-
+       
     await sendAssignmentMail({
       HREmail: HR_mail,
       HRName: HR_name,
@@ -83,7 +43,7 @@ const assignCandidateToHR = async (req, res) => {
       resumePath: resumeFile,
     });
 
-    res
+     res
       .status(201)
       .json({ message: "Candidate assigned and email sent to HR", assignment });
   } catch (error) {
@@ -92,11 +52,24 @@ const assignCandidateToHR = async (req, res) => {
   }
 };
 
+//Get the candidates
+const getAllNewCandidates = async (req, res) => {
+  try {
+    const candidates = await AssignedCandidate.findAll();
+    res.json(candidates);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch new candidates" });
+  }
+};
+
+
 //search a candidate to avoid duplicates
 const searchCandidate = async (req, res) => {
   try {
-    const { HR_email, HR_contact, candidate_name, candidate_contact } =
+    const { HR_email, HR_contact, candidate_name, candidate_email, candidate_contact } =
       req.query;
+      console.log(candidate_email);
+      
 
     const whereConditionHR = {};
     const whereConditionCandidate = {};
@@ -107,13 +80,14 @@ const searchCandidate = async (req, res) => {
 
     // ✅ Filter Candidate by name or contact
     if (candidate_name) whereConditionCandidate.candidate_name = candidate_name;
-    if (candidate_contact)
-      whereConditionCandidate.contact_number = candidate_contact;
+    if (candidate_email)
+      whereConditionCandidate.candidate_email_id = candidate_email;
 
-    const assignments = await AssignToHR.findAll({
+    const assignments = await AssignedCandidate.findAll({
       include: [
         {
           model: HR,
+          as: "HR",
           attributes: ["id", "name", "email", "contact_number"],
           where: Object.keys(whereConditionHR).length
             ? whereConditionHR
@@ -121,6 +95,7 @@ const searchCandidate = async (req, res) => {
         },
         {
           model: Candidate,
+          as: "candidate",
           attributes: [
             "id",
             "candidate_name",
@@ -149,7 +124,7 @@ const searchCandidate = async (req, res) => {
 };
 
 module.exports = {
-  assignCandidateToHR,
-  getAllAssignments,
+  createNewCandidate,
+  getAllNewCandidates,
   searchCandidate,
 };

@@ -1,5 +1,6 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/database");
+const AssignToHR = require("./AssignToHR");
 
 const HR = sequelize.define(
   "HR",
@@ -16,6 +17,7 @@ const HR = sequelize.define(
     email: {
       type: DataTypes.STRING,
       allowNull: false,
+      unique: true,
       validate: {
         isEmail: true,
       },
@@ -31,5 +33,9 @@ const HR = sequelize.define(
   },
   { tableName: "hrs", timestamps: false }
 );
+
+HR.associate = (models) => {
+    HR.hasMany(models.AssignedCandidate, { foreignKey: "HR_mail", sourceKey: "email", as: 'assignedCandidates',});
+  };
 
 module.exports = HR;

@@ -10,7 +10,7 @@ import { addToActiveList, updateActiveList } from "../../api/activeList";
 
 const { Option } = Select;
 
-const CandidateForm = () => {
+const Candidate = () => {
   const { id } = useParams(); // Check if editing
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
@@ -60,18 +60,41 @@ const CandidateForm = () => {
     }
   };
 
+  const handleCandidateSearchByEmail = async (emailToSearch) => {
+  try {
+    const email = emailToSearch || form.getFieldValue("candidate_email_id");
+    if (!email) {
+      message.warning("Please enter a candidate email first.");
+      return;
+    }
+
+    const response = await searchCandidateByEmail(email);
+    console.log("✅ API response:", response); 
+
+     if (response.message === "Candidate is in Rejected list") {
+      message.error("❌ Candidate is in the Rejected list");
+    } else if (response.message === "Candidate is already joined") {
+      message.warning("⚠️ Candidate is already joined");
+    } else if (response.message === "Candidate is already in Active List") {
+      message.warning("⚠️ Candidate is already in Active List");
+    } else if (response.message === "Candidate not found, you can proceed") {
+      message.success("✅ No duplicates found. You can proceed!");
+    } else {
+      message.info(response.message);
+    }
+
+    return response; // optional: return for chaining
+  } catch (error) {
+    console.error("❌ Error searching candidate:", error);
+    message.error("Error checking candidate email. Try again.");
+  }
+};
+
+
   // 🎯 Submit handler for Add/Update
   const handleSubmit = async (values) => {
     setLoading(true);
       try {
-        //check duplicates first
-        const emailCheck = await searchCandidateByEmail(values.candidate_email_id);
-        if(emailCheck.message !== "Candidate not found, you can proceed"){
-          message.warning(emailCheck.message);
-          setLoading(false);
-          return;
-        }
-
         let uploadedFilePath = attachmentUrl;
   
         // 🎯 Upload file if one is selected
@@ -88,29 +111,6 @@ const CandidateForm = () => {
         status_date: values.status_date.format("YYYY-MM-DD"),
       };
 
-//       const candidateData = {
-//   "HR_name": "Moqueed Ahmed",
-//   "HR_mail": "moqueed.pearl@gmail.com",
-//   "candidate_name": "Alice Doe",
-//   "candidate_email_id": "alice.doe@example.com",
-//   "contact_number": "9876543210",
-//   "current_company": "ABC Pvt Ltd",
-//   "current_location": "Bangalore",
-//   "permanent_location": "Hyderabad",
-//   "qualification": "B.Tech",
-//   "experience": "3",
-//   "skills": "Django,flask",
-//   "current_ctc": "7 LPA",
-//   "expected_ctc": "9 LPA",
-//   "band": "L0",
-//   "reference": "Internal",
-//   "position": "Python Developer",
-//   "department": "Engineering",
-//   "progress_status": "L1 Interview",
-//   "status_date": "2025-05-02",
-//   "entry_date": "2025-05-01"
-// }
-
 
       if (isEditing) {
         await updateCandidate(id, candidateData);
@@ -123,7 +123,7 @@ const CandidateForm = () => {
       
 
       //Fetch the candidate_id using email
-      const result = await searchCandidateByEmail(candidateData.candidate_email_id);
+      const result = await handleCandidateSearchByEmail(candidateData.candidate_email_id);
       if(!result || !result.candidate || !result.candidate.id){
         throw new Error("candidate ID not found after adding candidate");
       }
@@ -155,34 +155,23 @@ const CandidateForm = () => {
   label="Candidate Email"
   rules={[{ required: true, type: "email", message: "Please enter a valid email" }]}
 >
-  <Input
-    placeholder="Enter candidate email"
-    addonAfter={
-      <Button
-        type="link"
-        onClick={async () => {
-          try {
-            const email = form.getFieldValue("candidate_email_id");
-            if (!email) {
-              message.warning("Please enter an email before searching.");
-              return;
-            }
+<Input
+  placeholder="Enter candidate email"
+  value={form.getFieldValue("candidate_email_id")}
+  onChange={(e) => form.setFieldsValue({ candidate_email_id: e.target.value })}
+  addonAfter={
+    <Button
+      type="link"
+      onClick={async () => {
+        const email = form.getFieldValue("candidate_email_id");
+        await handleCandidateSearchByEmail(email);
+      }}
+    >
+      Search
+    </Button>
+  }
+/>
 
-            const result = await searchCandidateByEmail(email);
-            if (result.message === "Candidate not found, you can proceed") {
-              message.success(result.message);
-            } else {
-              message.warning(result.message);
-            }
-          } catch (err) {
-            message.error("Error checking candidate. Try again.");
-          }
-        }}
-      >
-        Search
-      </Button>
-    }
-  />
 </Form.Item>
       <Form
         form={form}
@@ -351,4 +340,4 @@ const CandidateForm = () => {
   );
 };
 
-export default CandidateForm;
+export default Candidate;

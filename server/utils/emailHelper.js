@@ -8,13 +8,13 @@ const sendPositionMail = async ( positionTitle, positionDescription) => {
     service: 'gmail',
     auth: {
       user: process.env.EMAIL_ADMIN,
-      pass: process.env.EMAIL_PASS,
+      pass: process.env.EMAIL_ADMIN_PASS,
     },
   });
 
   const mailOptions = {
     from: process.env.EMAIL_ADMIN,
-    to: process.env.USER,
+    to: process.env.EMAIL_USER,
     subject: `New Position Allotted: ${positionTitle}`,
     html: getPositionAssignedTemplate(positionTitle, positionDescription),
   };
@@ -33,7 +33,7 @@ const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
     user: process.env.EMAIL_ADMIN,
-    pass: process.env.EMAIL_PASS,
+    pass: process.env.EMAIL_ADMIN_PASS,
   }
 })
 

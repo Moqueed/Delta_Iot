@@ -15,7 +15,7 @@ router.post("/add", async (req, res) => {
 });
 
 // ✅ Get HR Data Tracker with HR & Candidate Info
-router.get("/", async (req, res) => {
+router.get("/fetch", async (req, res) => {
   try {
     const trackerData = await HRDataTracker.findAll({
       include: [

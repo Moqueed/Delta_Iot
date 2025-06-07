@@ -1,5 +1,7 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/database");
+const AssignToHR = require("./AssignToHR");
+const AssignedCandidate = require("./AssignedCandidate");
 
 const Candidate = sequelize.define(
   "Candidate",
@@ -132,5 +134,7 @@ const Candidate = sequelize.define(
 //     console.error("❌ Error deleting ActiveList entry:", error);
 //   }
 // });
+
+Candidate.hasMany(AssignedCandidate, { foreignKey: "candidate_id", as: "assignments" });
 
 module.exports = Candidate;

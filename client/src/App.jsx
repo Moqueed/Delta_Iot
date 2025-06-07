@@ -18,6 +18,8 @@ import NewlyJoinedPage from "./pages/HR/NewlyJoinedPage";
 import BufferDataPage from "./pages/HR/BufferDataPage";
 import AssignToHrPage from "./pages/Admin/AssignToHrPage";
 import HRPage from "./pages/Admin/HRPage";
+import HRDataTrackerPage from "./pages/Admin/HRDataTrackerPage";
+
 
 
 function App() {
@@ -89,6 +91,7 @@ function App() {
         <Route path="/total-data/newly-joined" element={<NewlyJoinedPage/>}/>
         <Route path="/total-data/buffer-data" element={<BufferDataPage/>}/>
         <Route path="/admin-dashboard/hr-list" element={<HRPage/>}/>
+        <Route path="/admin-dashboard/hr-data-tracker" element={<HRDataTrackerPage/>}/>
       </Routes>
     </>
   );

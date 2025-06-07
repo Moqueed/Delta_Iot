@@ -32,7 +32,7 @@ const AdminDashboard = () => {
     { key: "approvals", icon: <CheckCircleOutlined />, title: "Approvals", borderColor: "#FF6347" },
     { key: "active-positions", icon: <FileTextOutlined />, title: "Active Positions", borderColor: "#FFD700" },
     { key: "hr-list", icon: <TeamOutlined />, title: "HR's List", borderColor: "#32CD32" },
-    { key: "hr-tracker", icon: <SearchOutlined />, title: "HR Tracker", borderColor: "#1E90FF" },
+    { key: "hr-data-tracker", icon: <SearchOutlined />, title: "HR Tracker", borderColor: "#1E90FF" },
     { key: "assign-to-hr", icon: <UserSwitchOutlined />, title: "Assign to HR", borderColor: "#FF4500" },
   ];
 
@@ -62,6 +62,7 @@ const AdminDashboard = () => {
             "active-list": "/admin-dashboard/active-list",
             "hr-list": "/admin-dashboard/hr-list",
             "assign-to-hr": "/admin-dashboard/assign-to-hr",
+            "hr-data-tracker" : "/admin-dashboard/hr-data-tracker",
           };
         
           navigate(routeMap[section.key] || `/hr-dashboard/${section.key}`);
