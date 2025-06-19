@@ -58,7 +58,7 @@ const transporter = nodemailer.createTransport({
     ? [
       {
         filename: path.basename(resumePath),
-        path: resumePath,
+        path: path.join(__dirname, "..", resumePath),
       }
     ]
     : [],

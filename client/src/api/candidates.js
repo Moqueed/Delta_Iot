@@ -43,13 +43,13 @@ export const deleteCandidate = async (id) => {
     throw error.response?.data?.message || "Failed to delete candidate";
   }
 };
-//Get by email
-export const getCandidates = async(email) => {
-  try{
-    const response = await axiosInstance.get(`/api/candidates/${email}`);
+//Get all candidates
+export const getCandidates = async () => {
+  try {
+    const response = await axiosInstance.get("/api/candidates/fetch");
     return response.data;
-  } catch(error){
-    console.error("Error fetching candidate:", error);
-    throw error.response?.data?.message || "Failed to fetch candidate";
+  } catch (error) {
+    console.error("Error fetching candidates:", error);
+    throw error.response?.data?.message || "Failed to fetch candidates";
   }
 };

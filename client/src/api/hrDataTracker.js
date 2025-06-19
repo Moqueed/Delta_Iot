@@ -16,7 +16,7 @@ export const addHRDataEntry = async (data) => {
 // ✅ Get all HR Data Tracker Entries
 export const getHRDataEntries = async () => {
   try {
-    const response = await axios.get("/api/hr-data-tracker/fetch");
+    const response = await axiosInstance.get("/api/hr-data-tracker/fetch");
     return response.data;
   } catch (error) {
     console.error("Error fetching HR data entries:", error);

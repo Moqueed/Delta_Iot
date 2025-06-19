@@ -19,8 +19,7 @@ import BufferDataPage from "./pages/HR/BufferDataPage";
 import AssignToHrPage from "./pages/Admin/AssignToHrPage";
 import HRPage from "./pages/Admin/HRPage";
 import HRDataTrackerPage from "./pages/Admin/HRDataTrackerPage";
-
-
+import UploadPage from "./pages/HR/UploadPage";
 
 function App() {
   return (
@@ -68,7 +67,7 @@ function App() {
             </ProtectedRoute>
           }
         />
-          <Route
+        <Route
           path="/admin-dashboard/active-list"
           element={
             <ProtectedRoute role="Admin">
@@ -80,18 +79,32 @@ function App() {
           path="/admin-dashboard/approvals"
           element={
             <ProtectedRoute role="Admin">
-              <ApprovalsPage/>
+              <ApprovalsPage />
             </ProtectedRoute>
           }
         />
-        <Route path="/admin-dashboard/assign-to-hr" element={<AssignToHrPage/>}/>
-        <Route path="/total-data/rejected-data" element={<RejectedDataPage/>}/>
-        <Route path="/total-data/total-master-data" element={<TotalMasterDataPage/>}/>
-        <Route path="/total-data/about-to-join" element={<AboutToJoinPage/>}/>
-        <Route path="/total-data/newly-joined" element={<NewlyJoinedPage/>}/>
-        <Route path="/total-data/buffer-data" element={<BufferDataPage/>}/>
-        <Route path="/admin-dashboard/hr-list" element={<HRPage/>}/>
-        <Route path="/admin-dashboard/hr-data-tracker" element={<HRDataTrackerPage/>}/>
+        <Route
+          path="/admin-dashboard/assign-to-hr"
+          element={<AssignToHrPage />}
+        />
+        <Route
+          path="/total-data/rejected-data"
+          element={<RejectedDataPage />}
+        />
+        <Route
+          path="/total-data/total-master-data"
+          element={<TotalMasterDataPage />}
+        />
+        <Route path="/total-data/about-to-join" element={<AboutToJoinPage />} />
+        <Route path="/total-data/newly-joined" element={<NewlyJoinedPage />} />
+        <Route path="/total-data/buffer-data" element={<BufferDataPage />} />
+        <Route path="/admin-dashboard/hr-list" element={<HRPage />} />
+        <Route
+          path="/admin-dashboard/hr-data-tracker"
+          element={<HRDataTrackerPage />}
+        />
+        <Route path="/hr-dashboard/upload" element={<UploadPage />} />
+        <Route path="/admin-dashboard/upload" element={<UploadPage />} />
       </Routes>
     </>
   );

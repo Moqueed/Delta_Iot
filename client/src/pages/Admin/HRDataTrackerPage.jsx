@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Table, Select, DatePicker, Button, Row, Col, message } from "antd";
 import moment from "moment";
-import {HomeOutlined, LogoutOutlined }  from "@ant-design/icons";
+import { HomeOutlined, LogoutOutlined } from "@ant-design/icons";
 import "./HRDataTrackerPage.css";
 import { getHRDataEntries } from "../../api/hrDataTracker";
 import { Link } from "react-router-dom";
@@ -34,7 +34,7 @@ const HRDataTrackerPage = () => {
     localStorage.clear();
     message.success("Logout successfully");
     window.location.href = "/login";
-  }
+  };
 
   const handleFilter = () => {
     let data = [...trackerData];
@@ -92,52 +92,47 @@ const HRDataTrackerPage = () => {
 
   const allHRNames = [...new Set(trackerData.map((item) => item.HR?.name))];
   const STATUS_OPTIONS = [
-  "Application Received",
-  "Phone Screening",
-  "L1 Interview",
-  "Yet to Share",
-  "L2 Interview",
-  "Shared with Client",
-  "Final Discussion",
-  "Offer Released",
-  "Joined",
-  "Declined Offer",
-  "Rejected",
-  "Withdrawn",
-  "No Show",
-  "Buffer",
-  "Hold"
-];
-
+    "Application Received",
+    "Phone Screening",
+    "L1 Interview",
+    "Yet to Share",
+    "L2 Interview",
+    "Shared with Client",
+    "Final Discussion",
+    "Offer Released",
+    "Joined",
+    "Declined Offer",
+    "Rejected",
+    "Withdrawn",
+    "No Show",
+    "Buffer",
+    "Hold",
+  ];
 
   return (
     <div className="tracker-container">
       <div className="tracker-header">
         <div className="header-left">
-        <img
-          src="/logo.png"
-          alt="logo"
-          className="logo"
-        />
-        <Link to = "/admin-dashboard">
-            <HomeOutlined className="home-icon"/>
-        </Link>
-    </div>
+          <img src="/logo.png" alt="logo" className="logo" />
+          <Link to="/admin-dashboard">
+            <HomeOutlined className="home-icon" />
+          </Link>
+        </div>
 
         <h2>HR Data Tracker</h2>
 
         <div className="header-right">
-        <span className="welcome-text">Welcome: Moqueed Ahmed</span>
-        <Button
-            icon={<LogoutOutlined/>}
+          <span className="welcome-text">Welcome: Moqueed Ahmed</span>
+          <Button
+            icon={<LogoutOutlined />}
             onClick={handleLogout}
             type="primary"
             danger
             size="small"
-            style={{ marginLeft: "15px"}}
-        >
+            style={{ marginLeft: "15px" }}
+          >
             Logout
-        </Button>
+          </Button>
         </div>
       </div>
 

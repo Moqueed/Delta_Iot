@@ -56,11 +56,11 @@ AssignedCandidate.associate = (models) => {
     as: "HR",
   });
 
-  AssignedCandidate.belongsTo(models.Candidate, {
-    foreignKey: "candidate_email_id",
-    targetKey: "candidate_email_id",
-    as: "candidate",
-  });
+  // AssignedCandidate.belongsTo(models.Candidate, {
+  //   foreignKey: "candidate_email_id",
+  //   targetKey: "candidate_email_id",
+  //   as: "candidate",
+  // });
 };
 
 module.exports = AssignedCandidate;

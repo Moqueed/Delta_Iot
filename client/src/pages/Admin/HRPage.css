@@ -44,6 +44,7 @@
 }
 
 .container-card {
+  height: 80%;
   background: #e0f2fe;
   width: 70%;
   display: flex;
@@ -63,4 +64,20 @@
 
 .hr-list-item:hover {
   background-color: #dbeafe;
+}
+
+.hr-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  min-height: 10vh;
+  background-color: #4096ff; /* Ant Design primary color */
+  padding: 10px 20px;
+  color: white;
+  border-radius: 6px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  box-sizing:border-box;
+  height: 85px;
+  width: 100vw;
 }

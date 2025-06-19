@@ -1,10 +1,14 @@
 const { Op } = require("sequelize");
 const express = require("express");
+const path = require("path");
+const fs = require("fs");
+const uploadsFolder = path.join(__dirname, "../uploads");
 const upload = require("../middleware/uploadMiddleware");
 const Candidate = require("../models/Candidate");
 const ActiveList = require("../models/ActiveList");
 const Approval = require("../models/Approval");
 const AssignToHR = require("../models/AssignToHR");
+const AssignedCandidate = require("../models/AssignedCandidate");
 
 const router = express.Router();
 
@@ -133,10 +137,10 @@ router.post(
         return res.status(400).json({ message: "No file uploaded" });
       }
 
-      const filePath = `/uploads/${file.filename}`;
+      const filePath = path.join("/uploads", file.filename);
 
       // Find matching record in AssignedToHR
-      const assignedEntry = await AssignToHR.findOne({
+      const assignedEntry = await AssignedCandidate.findOne({
         where: { candidate_email_id: email },
       });
 
@@ -162,5 +166,30 @@ router.post(
     }
   }
 );
+
+//fetch the upload file
+router.get("/upload/:filename", (req, res) => {
+  const filename = req.params.filename;
+  const filePath = path.join(__dirname, "../uploads", filename);
+
+  res.sendFile(filePath, (err) => {
+    if (err) {
+      console.error("Error sending file:", err);
+      res.status(404).json({ message: "File not found" });
+    }
+  });
+});
+
+// List all uploaded files
+router.get("/list", (req, res) => {
+  fs.readdir(uploadsFolder, (err, files) => {
+    if (err) {
+      console.error("Error reading uploads folder:", err);
+      return res.status(500).json({ message: "Unable to list files" });
+    }
+    res.json({ files }); // ← sends array of filenames
+  });
+});
+
 
 module.exports = router;

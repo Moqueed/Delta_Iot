@@ -18,10 +18,13 @@ const createNewCandidate = async (req, res) => {
       comments,
     } = req.body;
 
-    const attachments = req.file ? req.file.filename : null;
+
+    const attachments = req.file ? `/uploads/${req.file.filename}` : null;
+
+    const hrRecord = await HR.findOne({ where: { email: HR_mail } });
 
     const newCandidate = await AssignedCandidate.create({
-      HR_id,
+      HR_id: hrRecord ? hrRecord.id : null,
       HR_name,
       HR_mail,
       candidate_name,
@@ -31,6 +34,7 @@ const createNewCandidate = async (req, res) => {
       comments,
       attachments,
     });
+     console.log(newCandidate);
        
     await sendAssignmentMail({
       HREmail: HR_mail,
@@ -40,12 +44,13 @@ const createNewCandidate = async (req, res) => {
       position,
       contactNumber: contact_number,
       comments,
-      resumePath: resumeFile,
+      resumePath: attachments,
     });
+      console.log("Uploaded file:", req.file);
 
      res
       .status(201)
-      .json({ message: "Candidate assigned and email sent to HR", assignment });
+      .json({ message: "Candidate assigned and email sent to HR", newCandidate });
   } catch (error) {
     console.error("Error assigning candidate:", error);
     res.status(500).json({ error: "Internal Server Error" });
@@ -82,6 +87,8 @@ const searchCandidate = async (req, res) => {
     if (candidate_name) whereConditionCandidate.candidate_name = candidate_name;
     if (candidate_email)
       whereConditionCandidate.candidate_email_id = candidate_email;
+    if (candidate_contact)
+      candidateWhere.contact_number = candidate_contact;
 
     const assignments = await AssignedCandidate.findAll({
       include: [
@@ -93,23 +100,17 @@ const searchCandidate = async (req, res) => {
             ? whereConditionHR
             : undefined,
         },
-        {
-          model: Candidate,
-          as: "candidate",
-          attributes: [
-            "id",
-            "candidate_name",
-            "candidate_email_id",
-            "position",
-            "contact_number",
-            "attachments",
-          ],
-          where: Object.keys(whereConditionCandidate).length
-            ? whereConditionCandidate
-            : undefined,
-        },
       ],
-      attributes: ["id", "comments", "attachments"],
+        where: Object.keys(whereConditionCandidate).length ? whereConditionCandidate : undefined,
+      attributes: [
+        "id",
+        "candidate_name",
+        "candidate_email_id",
+        "position",
+        "contact_number",
+        "comments",
+        "attachments",
+      ],
     });
 
     res
