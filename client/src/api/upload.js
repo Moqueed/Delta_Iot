@@ -48,7 +48,7 @@ export const uploadResumeToAssigned = async (email, file) => {
 export const fetchResumeFile = async (filename) => {
   try {
     const response = await axiosInstance.get(
-      `/api/uploads/upload/${filename}`,
+      `/api/uploads/resume/${filename}`,
       {
         responseType: "blob", // Important for downloading/displaying files
       }

@@ -8,7 +8,7 @@
 }
 
 .hr-dashboard-header {
-  background-color: #e6f7ff;
+  background-color: hsl(113, 52%, 75%);
   padding: 10px 20px;
   display: flex;
   align-items: center;
@@ -17,6 +17,12 @@
   margin-bottom: 30px;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
   flex-wrap: wrap;
+}
+
+.hr-dashboard-body {
+  display: flex;
+  justify-content: center;
+  text-align: center;
 }
 
 /* .header-left {
@@ -63,6 +69,8 @@
   display: flex;
   justify-content: center;
   align-items: center;
+  flex-wrap: wrap; /* Allows multiple rows */
+  gap: 30px 40px;
 }
 
 .card-col {
@@ -70,7 +78,7 @@
   justify-content: center;
 }
 
-.dashboard-card {
+.hr-dashboard-card {
   width: 220px;
   height: 220px;
   display: flex;

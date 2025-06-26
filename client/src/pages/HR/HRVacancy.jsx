@@ -4,6 +4,8 @@ import { deleteVacancy, getAllVacancies } from "../../api/hrVacancy";
 import { Button, message, Popconfirm, Spin, Table } from "antd";
 import { HomeOutlined, LogoutOutlined } from "@ant-design/icons";
 import "./HRVacancy.css";
+import DashboardHomeLink from "../../components/DashboardHomeLink";
+import axiosInstance from "../../api";
 
 const HRVacancy = () => {
   const [vacancies, setVacancies] = useState([]);
@@ -14,7 +16,9 @@ const HRVacancy = () => {
   const fetchVacancies = async () => {
     try {
       setLoading(true);
-      const data = await getAllVacancies();
+      const email = localStorage.getItem("email");
+      const res = await axiosInstance.get(`/api/hrvacancies/by-email/${email}`);
+      const data = res.data;
       setVacancies(data);
     } catch (error) {
       message.error("Failed to load vacancies");
@@ -47,7 +51,6 @@ const HRVacancy = () => {
     { title: "Position", dataIndex: "position", key: "position" },
     { title: "Department", dataIndex: "department", key: "department" },
     { title: "Vacancy", dataIndex: "vacancy", key: "vacancy" },
-    { title: "Manager", dataIndex: "manager", key: "manager" },
     {
       title: "Experience",
       key: "experience",
@@ -55,45 +58,77 @@ const HRVacancy = () => {
         `${record.minimum_experience} - ${record.maximum_experience} years`,
     },
     {
+      title: "Skills",
+      dataIndex: "skills",
+      key: "skills",
+      render: (skills) => (
+        <>
+          {Array.isArray(skills)
+            ? skills.map((skill, index) => (
+                <span key={index}>
+                  {skill}
+                  {index < skills.length - 1 && ", "}
+                </span>
+              ))
+            : skills}
+        </>
+      ),
+    },
+    {
       title: "Job Description",
       dataIndex: "job_description",
       key: "job_description",
     },
-    { title: "HRs", dataIndex: "HRs", key: "HRs" },
     {
-      title: "Actions",
-      key: "actions",
-      render: (_, record) => (
+      title: "HRs",
+      dataIndex: "HRs",
+      key: "HRs",
+      render: (HRs) => (
         <>
-          <Button
-            type="link"
-            onClick={() => console.log("View Details:", record.job_id)}
-          >
-            View
-          </Button>
-          <Popconfirm
-            title="Are you sure you want to delete this vacancy?"
-            onConfirm={() => handleDelete(record.job_id)}
-            okText="Yes"
-            cancelText="No"
-          >
-            <Button type="link" danger>
-              Delete
-            </Button>
-          </Popconfirm>
+          {Array.isArray(HRs)
+            ? HRs.map((hr, index) => (
+                <span key={index}>
+                  {hr}
+                  {index < HRs.length - 1 && ", "}
+                </span>
+              ))
+            : HRs}
         </>
       ),
     },
+
+    // {
+    //   title: "Actions",
+    //   key: "actions",
+    //   render: (_, record) => (
+    //     <>
+    //       <Button
+    //         type="link"
+    //         onClick={() => console.log("View Details:", record.job_id)}
+    //       >
+    //         View
+    //       </Button>
+    //       <Popconfirm
+    //         title="Are you sure you want to delete this vacancy?"
+    //         onConfirm={() => handleDelete(record.job_id)}
+    //         okText="Yes"
+    //         cancelText="No"
+    //       >
+    //         <Button type="link" danger>
+    //           Delete
+    //         </Button>
+    //       </Popconfirm>
+    //     </>
+    //   ),
+    // },
   ];
 
   return (
     <div className="hr-vacancy-container">
       <div className="hr-vacancy-header">
         <div className="header-left">
-          <img src="/logo.png" alt="logo" className="logo" />
-          <Link to="/admin-dashboard">
-            <HomeOutlined className="home-icon" />
-          </Link>
+          <img src="/images/hrms-logo.jpg" alt="logo" className="logo" />
+          <DashboardHomeLink />
         </div>
         <div className="header-center">
           <h2 className="header-title">HR Vacancies</h2>

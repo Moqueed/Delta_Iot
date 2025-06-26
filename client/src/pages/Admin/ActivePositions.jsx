@@ -1,197 +1,302 @@
 import React, { useState, useEffect } from "react";
-import { createPosition, deletePosition, updatePosition } from "../../api/activePositions";
+import { Form, Input, InputNumber, Button, message, Select } from "antd";
+import {
+  createPosition,
+  deletePosition,
+  updatePosition,
+  fetchPositions,
+} from "../../api/activePositions";
+import "./PositionForm.css";
+import { Link } from "react-router-dom";
+import { HomeOutlined, LogoutOutlined } from "@ant-design/icons";
 
-const PositionForm = ({ selectedPosition, refreshPositions }) => {
-  // ✅ Define state at the top level
-  const initialFormState = {
-    job_id:"",
-    position: "",
-    skills: "",
-    department: "",
-    vacancy: 0,
-    manager: "",
-    minimum_experience: 0,
-    maximum_experience: 0,
-    job_description: "",
-    HRs: "",
+const { Option } = Select;
+
+const PositionForm = () => {
+  const [form] = Form.useForm();
+  const [positions, setPositions] = useState([]);
+  const [selectedPosition, setSelectedPosition] = useState(null);
+
+  // ✅ Function to fetch and refresh positions
+  const refreshPositions = async () => {
+    try {
+      const data = await fetchPositions();
+      setPositions(data);
+    } catch (error) {
+      console.error("Error refreshing positions:", error);
+    }
   };
 
-  const [formData, setFormData] = useState(initialFormState);
+  // ✅ Fetch positions on initial load
+  useEffect(() => {
+    refreshPositions();
+  }, []);
 
-  // ✅ Fill form when selecting a position
   useEffect(() => {
     if (selectedPosition) {
-      setFormData({
+      const updatedPosition = {
         ...selectedPosition,
+        position: selectedPosition.position || "",
         skills: Array.isArray(selectedPosition.skills)
           ? selectedPosition.skills.join(", ")
-          : selectedPosition.skills,
+          : selectedPosition.skills || "",
         HRs: Array.isArray(selectedPosition.HRs)
           ? selectedPosition.HRs.join(", ")
-          : selectedPosition.HRs,
-      });
+          : selectedPosition.HRs || "",
+        department: selectedPosition.department || "",
+        vacancy: Number(selectedPosition.vacancy) || 0,
+        minimum_experience: Number(selectedPosition.minimum_experience) || 0,
+        maximum_experience: Number(selectedPosition.maximum_experience) || 0,
+        job_description: selectedPosition.job_description || "",
+      };
+
+      form.setFieldsValue(updatedPosition);
     } else {
-      setFormData(initialFormState);
+      form.resetFields();
     }
-  }, [selectedPosition]);
-  
+  }, [selectedPosition, form]);
 
-  // ✅ Handle form input changes (convert specific fields to numbers)
-const handleChange = (e) => {
-  const { name, value } = e.target;
+  const handleSelectPosition = (pos) => {
+    setSelectedPosition(pos);
+    const updatedPosition = {
+      ...pos,
+      skills: Array.isArray(pos.skills)
+        ? pos.skills.join(", ")
+        : pos.skills || "",
+      HRs: Array.isArray(pos.HRs) ? pos.HRs.join(", ") : pos.HRs || "",
+    };
+    form.setFieldsValue(updatedPosition);
+  };
 
-  setFormData({
-    ...formData,
-    [name]: ["skills", "HRs"].includes(name)
-      ? value.split(",").map((item) => item.trim())
-      : ["vacancy", "minimum_experience", "maximum_experience"].includes(name)
-      ? Number(value) || 0 // Convert to number (default to 0 if invalid)
-      : value,
-  });
-};
-
-
-  // ✅ Add new position
-  const handleAdd = async () => {
+  const handleAdd = async (values) => {
     try {
       const payload = {
-        ...formData,
-        skills: Array.isArray(formData.skills)
-          ? formData.skills
-          : formData.skills.split(",").map((skill) => skill.trim()),
+        ...values,
+        skills: values.skills.split(",").map((s) => s.trim()),
+        HRs: values.HRs.split(",").map((h) => h.trim()),
       };
 
       await createPosition(payload);
-      alert("Position added successfully!");
-      setFormData(initialFormState);
+      message.success("Position added!");
+      form.resetFields();
       refreshPositions();
-    } catch (error) {
-      console.error("Failed to add position:", error);
+    } catch (err) {
+      console.error("Add error:", err);
+      message.error("Failed to add position");
     }
   };
 
-  // ✅ Update existing position
   const handleUpdate = async () => {
     try {
-      if (selectedPosition?.job_id) {
-        const formattedData = {
-          ...formData,
-          skills: formData.skills.split(",").map((skill) => skill.trim()),
-          HRs: formData.HRs.split(",").map((hr) => hr.trim()),
-        };
-
-        await updatePosition(selectedPosition.job_id, formattedData);
-        alert("Position updated successfully!");
-        refreshPositions();
-      }
-    } catch (error) {
-      console.error("Failed to update position:", error);
-      alert("Error: " + (error.response?.data?.error || error.message));
+      const values = await form.validateFields();
+      const updated = {
+        ...values,
+        skills: values.skills.split(",").map((s) => s.trim()),
+        HRs: values.HRs.split(",").map((h) => h.trim()),
+      };
+      await updatePosition(selectedPosition.job_id, updated);
+      message.success("Position updated!");
+      refreshPositions();
+      fetchPositions().then((data) => setPositions(data));
+    } catch (err) {
+      console.error("Update error:", err);
+      message.error("Failed to update position");
     }
   };
 
-  // ✅ Delete position
   const handleDelete = async () => {
     try {
-      if (selectedPosition?.job_id) {
-        await deletePosition(selectedPosition.job_id);
-        alert("Position deleted successfully!");
-        setFormData(initialFormState);
-        refreshPositions();
-      }
-    } catch (error) {
-      console.error("Failed to delete position:", error);
-      alert("Error: " + (error.response?.data?.error || error.message));
+      await deletePosition(selectedPosition.job_id);
+      message.success("Position deleted!");
+      form.resetFields();
+      refreshPositions();
+      fetchPositions().then((data) => setPositions(data));
+    } catch (err) {
+      console.error("Delete error:", err);
+      message.error("Failed to delete position");
     }
   };
 
-  // ✅ Render form UI
+  const handleLogout = () => {
+    localStorage.clear();
+    message.success("Logout successfully");
+    window.location.href = "/login";
+  };
+
   return (
-    <div className="position-form">
-      <h2>Position Details</h2>
+    <div className="position-form-container">
+      <div className="position-header">
+        <div className="header-left">
+          <img src="/images/hrms-logo.jpg" alt="logo" className="logo" />
+          <Link to="/admin-dashboard">
+            <HomeOutlined className="home-icon" />
+          </Link>
+        </div>
 
-      <input
-        name="job_id"
-        placeholder="Job_id"
-        value={formData.job_id}
-        onChange={handleChange}
-      />
-      <input
-        name="position"
-        placeholder="Position"
-        value={formData.position}
-        onChange={handleChange}
-      />
-       <input
-        name="skills"
-        placeholder="Skills (comma-separated)"
-        value={formData.skills}
-        onChange={handleChange}
-      />
-       <input
-        name="department"
-        placeholder="Department"
-        value={formData.department}
-        onChange={handleChange}
-      />
-       <input
-        name="vacancy"
-        placeholder="Vacancy"
-        value={formData.vacancy}
-        onChange={handleChange}
-      />
-       <input
-        name="manager"
-        placeholder="Manager"
-        value={formData.manager}
-        onChange={handleChange}
-      />
-      <input
-        name="minimum_experience"
-        placeholder="Min Experience (years)"
-        type="number"
-        value={formData.minimum_experience}
-        onChange={handleChange}
-      />
-      <input
-        name="maximum_experience"
-        placeholder="Max Experience (years)"
-        type="number"
-        value={formData.maximum_experience}
-        onChange={handleChange}
-      />
-      <input
-        name="job_description"
-        placeholder="Job Description"
-        value={formData.job_description}
-        onChange={handleChange}
-      />
-      <input
-        name="HRs"
-        placeholder="HRs (comma-separated)"
-        value={formData.HRs}
-        onChange={handleChange}
-      />
+        <h2>Active Positions</h2>
 
-      {/* Button Row */}
-      <div className="button-row">
-        <button className="add-btn" onClick={handleAdd}>
-          Add
-        </button>
-        <button
-          className="update-btn"
-          onClick={handleUpdate}
-          disabled={!selectedPosition}
-        >
-          Update
-        </button>
-        <button
-          className="delete-btn"
-          onClick={handleDelete}
-          disabled={!selectedPosition}
-        >
-          Delete
-        </button>
+        <div className="header-right">
+          <span className="welcome-text">Welcome: Moqueed Ahmed</span>
+          <Button
+            icon={<LogoutOutlined />}
+            onClick={handleLogout}
+            type="primary"
+            danger
+            size="small"
+            style={{ marginLeft: "15px" }}
+          >
+            Logout
+          </Button>
+        </div>
+      </div>
+
+      <div className="position-body">
+        <div className="position-list">
+          <h3 className="position-list-title">Position List</h3>
+          {positions.length > 0 ? (
+            positions.map((pos) => (
+              <div
+                key={pos.job_id}
+                className={`position-list-card ${
+                  selectedPosition?.job_id === pos.job_id ? "selected" : ""
+                }`}
+                onClick={() => handleSelectPosition(pos)}
+              >
+                {pos.position}
+              </div>
+            ))
+          ) : (
+            <p>No positions found.</p>
+          )}
+        </div>
+
+        <div className="position-content">
+          <Form
+            form={form}
+            layout="vertical"
+            className="position-form"
+            onFinish={handleAdd}
+          >
+            <Form.Item
+              label="Position"
+              name="position"
+              className="form-item"
+              rules={[{ required: true, message: "Position is required" }]}
+            >
+              <Select placeholder="Select a position">
+                {[
+                  "Python Developer",
+                  "EMD Developer",
+                  "Intern",
+                  "Trainee",
+                  "C++ Developer",
+                  "Accounts",
+                  "Developer",
+                ].map((p) => (
+                  <Option key={p} value={p}>
+                    {p}
+                  </Option>
+                ))}
+              </Select>
+            </Form.Item>
+
+            <Form.Item
+              label="Skills (comma-separated)"
+              name="skills"
+              className="form-item"
+              rules={[{ required: true, message: "Please enter skills" }]}
+            >
+              <Input />
+            </Form.Item>
+
+            <Form.Item
+              label="Department"
+              name="department"
+              className="form-item"
+              rules={[{ required: true, message: "Department is required" }]}
+            >
+              <Select placeholder="Select a department" showSearch allowClear>
+                {[
+                  "IT",
+                  "EMDB",
+                  "Accounts",
+                  "Financial",
+                  "Python",
+                  "Engineering",
+                ].map((dept) => (
+                  <Option key={dept} value={dept}>
+                    {dept}
+                  </Option>
+                ))}
+              </Select>
+            </Form.Item>
+
+            <Form.Item
+              label="Vacancies"
+              name="vacancy"
+              className="form-item"
+              rules={[
+                { required: true, message: "please enter number of vacancies" },
+              ]}
+            >
+              <InputNumber min={0} style={{ width: "100%" }} />
+            </Form.Item>
+
+            <Form.Item
+              label="Minimum Experience (years)"
+              name="minimum_experience"
+              className="form-item"
+              rules={[
+                { required: true, message: "Minimum experience is required" },
+              ]}
+            >
+              <InputNumber min={0} style={{ width: "100%" }} />
+            </Form.Item>
+
+            <Form.Item
+              label="Maximum Experience (years)"
+              name="maximum_experience"
+              className="form-item"
+              rules={[
+                { required: true, message: "Maximum experience is required" },
+              ]}
+            >
+              <InputNumber min={0} style={{ width: "100%" }} />
+            </Form.Item>
+
+            <Form.Item
+              label="Job Description"
+              name="job_description"
+              className="form-item"
+              rules={[
+                { required: true, message: "Job Description is required" },
+              ]}
+            >
+              <Input.TextArea rows={3} />
+            </Form.Item>
+
+            <Form.Item
+              label="HRs (comma-separated)"
+              name="HRs"
+              className="form-item"
+              rules={[{ required: true, message: "Please enter HRs" }]}
+            >
+              <Input />
+            </Form.Item>
+
+            <Form.Item className="button-row">
+              <Button type="primary" htmlType="submit" className="add-btn">
+                Add
+              </Button>
+              <Button onClick={handleUpdate} className="update-btn">
+                Update
+              </Button>
+              <Button danger onClick={handleDelete} className="delete-btn">
+                Delete
+              </Button>
+            </Form.Item>
+          </Form>
+        </div>
       </div>
     </div>
   );

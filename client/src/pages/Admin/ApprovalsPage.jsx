@@ -13,18 +13,25 @@ import {
   Select,
   Upload,
 } from "antd";
-import { UploadOutlined } from "@ant-design/icons";
+import {
+  HomeOutlined,
+  LogoutOutlined,
+  UploadOutlined,
+} from "@ant-design/icons";
 import axiosInstance from "../../api";
 import {
   cancelApprovalRequest,
   reviewCandidateStatus,
   updateApprovalById,
 } from "../../api/approval";
+import "./ApprovalsPage.css";
+import { Link } from "react-router-dom";
 
 const ApprovalsPage = () => {
   const [approvals, setApprovals] = useState([]);
   const [formStates, setFormStates] = useState({});
   const [loading, setLoading] = useState(false);
+  const [selectedCandidate, setSelectedCandidate] = useState(null);
 
   const fetchApprovals = async () => {
     try {
@@ -66,14 +73,25 @@ const ApprovalsPage = () => {
     }));
   };
 
+  const handleCandidateClick = (candidate) => {
+    setSelectedCandidate(candidate);
+  };
+
   const handleReview = async (email, decision) => {
     try {
       await reviewCandidateStatus(email, { approval_status: decision });
       message.success(`Candidate ${decision}`);
       fetchApprovals();
+      setSelectedCandidate(null);
     } catch (error) {
       message.error("Failed to update status");
     }
+  };
+
+  const handleLogout = () => {
+    localStorage.clear();
+    message.success("Logout successfully");
+    window.location.href = "/login";
   };
 
   const handleCancel = async (id) => {
@@ -81,6 +99,7 @@ const ApprovalsPage = () => {
       await cancelApprovalRequest(id);
       message.success("Approval cancelled");
       fetchApprovals();
+      setSelectedCandidate(null);
     } catch (error) {
       message.error("Failed to cancel approval");
     }
@@ -91,6 +110,7 @@ const ApprovalsPage = () => {
       await updateApprovalById(id, formStates[id]);
       message.success("Approval updated successfully");
       fetchApprovals();
+      setSelectedCandidate(null);
     } catch (error) {
       message.error("Failed to update approval");
     }
@@ -184,37 +204,77 @@ const ApprovalsPage = () => {
     fetchApprovals();
   }, []);
 
+  const candidateToShow = selectedCandidate;
+  const formData = candidateToShow ? formStates[candidateToShow.id] || {} : {};
+
   return (
-    <div style={{ padding: 24 }}>
-      <h1>Approval Requests</h1>
-      {loading ? (
-        <Spin />
-      ) : approvals.length === 0 ? (
-        <p>No approval requests.</p>
-      ) : (
-        approvals.map((approval) => {
-          const formData = formStates[approval.id] || {};
-          return (
+    <div className="approvals-container">
+      <div className="candidate-header">
+        <div className="header-left">
+          <img src="/images/hrms-logo.jpg" alt="logo" className="logo" />
+          <Link to="/admin-dashboard">
+            <HomeOutlined className="home-icon" />
+          </Link>
+        </div>
+
+        <h2>Approvals</h2>
+
+        <div className="header-right">
+          <span className="welcome-text">Welcome: Moqueed Ahmed</span>
+          <Button
+            icon={<LogoutOutlined />}
+            onClick={handleLogout}
+            type="primary"
+            danger
+            size="small"
+            style={{ marginLeft: "15px" }}
+          >
+            Logout
+          </Button>
+        </div>
+      </div>
+
+      <div className="candidate-body">
+        <div className="candidate-sidebar">
+          <h3>Approvals List</h3>
+          <div className="candidate-list">
+            {approvals.length > 0 ? (
+              approvals.map((candidate) => (
+                <div
+                  className="candidate-list-card"
+                  key={candidate.id}
+                  onClick={() => handleCandidateClick(candidate)}
+                  style={{ cursor: "pointer" }}
+                >
+                  <p className="candidate-name">{candidate.candidate_name}</p>
+                </div>
+              ))
+            ) : (
+              <p>No Approvals found.</p>
+            )}
+          </div>
+        </div>
+
+        <div className="candidate-content">
+          {loading ? (
+            <Spin />
+          ) : !candidateToShow ? (
+            <p className="no-approvals">Select a candidate to review.</p>
+          ) : (
             <Form
-              key={approval.id}
+              key={candidateToShow.id}
               layout="vertical"
-              style={{
-                border: "1px solid #f0f0f0",
-                borderRadius: 8,
-                padding: 24,
-                marginBottom: 32,
-                background: "#fafafa",
-              }}
+              className="approval-form"
             >
               <Row gutter={16}>
                 {fields.map((field) => (
                   <Col span={8} key={field.key}>
-                    <Form.Item label={field.label}>
+                    <Form.Item label={field.label} className="approval-field">
                       {field.type === "dropdown" ? (
                         <Select
                           value={formData[field.key]}
                           onChange={(value) =>
-                            handleFieldChange(approval.id, field.key, value)
+                            handleFieldChange(candidateToShow.id, field.key, value)
                           }
                         >
                           {field.options.map((opt) => (
@@ -229,15 +289,13 @@ const ApprovalsPage = () => {
                             beforeUpload={() => false}
                             showUploadList={false}
                             onChange={({ file }) =>
-                              handleFileChange(approval.id, file)
+                              handleFileChange(candidateToShow.id, file)
                             }
                           >
-                            <Button icon={<UploadOutlined />}>
-                              Upload File
-                            </Button>
+                            <Button icon={<UploadOutlined />}>Upload File</Button>
                           </Upload>
-                          {formData.attachments && (
-                            typeof formData.attachments === "string" ? (
+                          {formData.attachments &&
+                            (typeof formData.attachments === "string" ? (
                               <div style={{ marginTop: 8 }}>
                                 <a
                                   href={formData.attachments}
@@ -251,15 +309,14 @@ const ApprovalsPage = () => {
                               <div style={{ marginTop: 8 }}>
                                 📄 <strong>{formData.attachments.name}</strong>
                               </div>
-                            )
-                          )}
+                            ))}
                         </>
                       ) : (
                         <Input
                           value={formData[field.key]}
                           onChange={(e) =>
                             handleFieldChange(
-                              approval.id,
+                              candidateToShow.id,
                               field.key,
                               e.target.value
                             )
@@ -282,7 +339,7 @@ const ApprovalsPage = () => {
                       value={formData.skills}
                       onChange={(e) =>
                         handleFieldChange(
-                          approval.id,
+                          candidateToShow.id,
                           "skills",
                           e.target.value
                         )
@@ -298,7 +355,7 @@ const ApprovalsPage = () => {
                       value={formData.comments}
                       onChange={(e) =>
                         handleFieldChange(
-                          approval.id,
+                          candidateToShow.id,
                           "comments",
                           e.target.value
                         )
@@ -310,7 +367,7 @@ const ApprovalsPage = () => {
               </Row>
 
               {formData.approval_status === "Pending" && (
-                <Form.Item>
+                <Form.Item className="approval-actions">
                   <Button
                     type="primary"
                     onClick={() =>
@@ -331,7 +388,7 @@ const ApprovalsPage = () => {
                   </Button>
                   <Popconfirm
                     title="Cancel this approval?"
-                    onConfirm={() => handleCancel(approval.id)}
+                    onConfirm={() => handleCancel(candidateToShow.id)}
                     okText="Yes"
                     cancelText="No"
                   >
@@ -340,7 +397,7 @@ const ApprovalsPage = () => {
                     </Button>
                   </Popconfirm>
                   <Button
-                    onClick={() => handleUpdate(approval.id)}
+                    onClick={() => handleUpdate(candidateToShow.id)}
                     type="default"
                   >
                     Update
@@ -349,9 +406,9 @@ const ApprovalsPage = () => {
               )}
               <Divider />
             </Form>
-          );
-        })
-      )}
+          )}
+        </div>
+      </div>
     </div>
   );
 };

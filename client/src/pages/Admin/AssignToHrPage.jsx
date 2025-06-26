@@ -107,7 +107,7 @@ const AssignToHrPage = () => {
       <div className="assign-to-hr-container">
         <div className="assign-header">
           <div className="header-left">
-            <img src="/logo.png" alt="logo" className="logo" />
+            <img src="/images/hrms-logo.jpg" alt="logo" className="logo" />
             <Link to="/admin-dashboard">
               <HomeOutlined className="home-icon" />
             </Link>

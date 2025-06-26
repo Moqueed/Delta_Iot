@@ -8,6 +8,8 @@ import {
   message,
   Spin,
   InputNumber,
+  Row,
+  Col,
 } from "antd";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import dayjs from "dayjs";
@@ -21,6 +23,7 @@ import { addToActiveList, updateActiveList } from "../../api/activeList";
 import { uploadResumeToAll } from "../../api/upload";
 import "./Candidate.css";
 import { HomeOutlined, LogoutOutlined } from "@ant-design/icons";
+import DashboardHomeLink from "../../components/DashboardHomeLink";
 
 const { Option } = Select;
 
@@ -30,10 +33,11 @@ const Candidate = () => {
   const [loading, setLoading] = useState(false);
   const [file, setFile] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
-   const [searchError, setSearchError] = useState(null);
+  const [searchError, setSearchError] = useState(null);
   const [searchForm] = Form.useForm();
   const [attachmentUrl, setAttachmentUrl] = useState(null);
   const [candidateList, setCandidateList] = useState([]);
+  const [selectedCandidate, setSelectedCandidate] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -76,6 +80,21 @@ const Candidate = () => {
     }
   };
 
+  const handleCandidateClick = (candidate) => {
+  console.log("Selected candidate:", candidate);
+  setSelectedCandidate(candidate);
+
+  // Set form values
+  form.setFieldsValue({
+    ...candidate,
+    entry_date: candidate.entry_date ? dayjs(candidate.entry_date) : null,
+    status_date: candidate.status_date ? dayjs(candidate.status_date) : null,
+  });
+
+  // Also set attachment (if resume uploaded previously)
+  setAttachmentUrl(candidate.attachments);
+};
+
   const handleCandidateSearchByEmail = async (emailToSearch) => {
     try {
       const email = emailToSearch || form.getFieldValue("candidate_email_id");
@@ -108,40 +127,40 @@ const Candidate = () => {
     window.location.href = "/login";
   };
 
-   const handleSearch = async () => {
-      const values = searchForm.getFieldsValue();
-      const search_input = values.search_input?.toString().trim();
-  
-      if (!search_input) {
-        console.log("Search input is empty or invalid");
-        return;
-      }
-  
-      console.log("Searching for:", search_input);
-  
-      const filters = {};
-      if (/\S+@\S+\.\S+/.test(search_input)) {
-        filters.candidate_email = search_input;
+  const handleSearch = async () => {
+    const values = searchForm.getFieldsValue();
+    const search_input = values.search_input?.toString().trim();
+
+    if (!search_input) {
+      console.log("Search input is empty or invalid");
+      return;
+    }
+
+    console.log("Searching for:", search_input);
+
+    const filters = {};
+    if (/\S+@\S+\.\S+/.test(search_input)) {
+      filters.candidate_email = search_input;
+    } else {
+      filters.contact_number = search_input;
+    }
+
+    try {
+      const result = await searchAssignments(filters);
+      if (result && result.length > 0) {
+        setSearchError(
+          "Candidate already exists. Please verify before proceeding."
+        );
       } else {
-        filters.contact_number = search_input;
+        setSearchError(null);
+        message.success("No duplicate found. You can continue.");
       }
-  
-      try {
-        const result = await searchAssignments(filters);
-        if (result && result.length > 0) {
-          setSearchError(
-            "Candidate already exists. Please verify before proceeding."
-          );
-        } else {
-          setSearchError(null);
-          message.success("No duplicate found. You can continue.");
-        }
-      } catch (error) {
-        console.error(error);
-        setSearchError("search failed");
-        message.error("Search failed");
-      }
-    };
+    } catch (error) {
+      console.error(error);
+      setSearchError("search failed");
+      message.error("Search failed");
+    }
+  };
 
   const handleSubmit = async (values) => {
     setLoading(true);
@@ -195,10 +214,8 @@ const Candidate = () => {
     <div className="candidate-container">
       <div className="candidate-header">
         <div className="header-left">
-          <img src="/logo.png" alt="logo" className="logo" />
-          <Link to="/admin-dashboard">
-            <HomeOutlined className="home-icon" />
-          </Link>
+         <img src="/images/hrms-logo.jpg" alt="logo" className="logo" />
+            <DashboardHomeLink/>
         </div>
 
         <h2>Candidates</h2>
@@ -224,7 +241,11 @@ const Candidate = () => {
           <div className="candidate-list">
             {candidateList.length > 0 ? (
               candidateList.map((candidate) => (
-                <div className="candidate-card" key={candidate.id}>
+                <div className="candidate-list-card"
+                 key={candidate.id}
+                 onClick={() => handleCandidateClick(candidate)}
+                 style={{cursor: "pointer"}}
+                 >
                   <p className="candidate-name">{candidate.candidate_name}</p>
                 </div>
               ))
@@ -265,234 +286,261 @@ const Candidate = () => {
             className="candidate-form"
           >
             {/* 🔥 HR Details */}
-            <Form.Item
-              name="HR_name"
-              label="HR Name"
-              rules={[{ required: true }]}
-            >
-              <Input placeholder="Enter HR name" />
-            </Form.Item>
+            <Row gutter={16}>
+              <Col span={8}>
+                <Form.Item name="HR_name" label="HR Name">
+                  <Input />
+                </Form.Item>
+              </Col>
+              <Col span={8}>
+                <Form.Item name="HR_mail" label="HR Email">
+                  <Input />
+                </Form.Item>
+              </Col>
+              <Col span={8}>
+                <Form.Item name="entry_date" label="Entry Date">
+                  <DatePicker style={{ width: "100%" }} />
+                </Form.Item>
+              </Col>
 
-            <Form.Item
-              name="HR_mail"
-              label="HR Email"
-              rules={[{ required: true, type: "email" }]}
-            >
-              <Input placeholder="Enter HR email" />
-            </Form.Item>
+              <Col span={8}>
+                <Form.Item name="candidate_name" label="Candidate Name">
+                  <Input />
+                </Form.Item>
+              </Col>
+              <Col span={8}>
+                <Form.Item name="candidate_email_id" label="Candidate Email">
+                  <Input />
+                </Form.Item>
+              </Col>
+              <Col span={8}>
+                <Form.Item name="contact_number" label="Contact Number">
+                  <Input />
+                </Form.Item>
+              </Col>
 
-            {/* 🔥 Candidate Info */}
-            <Form.Item
-              name="candidate_name"
-              label="Candidate Name"
-              rules={[{ required: true }]}
-            >
-              <Input placeholder="Enter candidate name" />
-            </Form.Item>
+              <Col span={8}>
+                <Form.Item name="profile_stage" label="Profile Stage">
+                  <Select>
+                    <Option value="Open">Open</Option>
+                    <Option value="Closed">Closed</Option>
+                  </Select>
+                </Form.Item>
+              </Col>
+              <Col span={8}>
+                <Form.Item name="current_company" label="Current Company">
+                  <Input />
+                </Form.Item>
+              </Col>
+              <Col span={8}>
+                <Form.Item name="current_location" label="Current Location">
+                  <Input />
+                </Form.Item>
+              </Col>
 
-            <Form.Item
-              name="candidate_email_id"
-              label="Candidate Email"
-              rules={[{ required: true, type: "email" }]}
-            >
-              <Input placeholder="Enter email" />
-            </Form.Item>
+              <Col span={8}>
+                <Form.Item name="permanent_location" label="Permanent Location">
+                  <Input />
+                </Form.Item>
+              </Col>
+              <Col span={8}>
+                <Form.Item name="qualification" label="Qualification">
+                  <Input />
+                </Form.Item>
+              </Col>
+              <Col span={8}>
+                <Form.Item name="experience" label="Experience (Years)">
+                  <Input />
+                </Form.Item>
+              </Col>
 
-            <Form.Item
-              name="contact_number"
-              label="Contact Number"
-              rules={[{ required: true }]}
-            >
-              <Input placeholder="Enter contact number" />
-            </Form.Item>
+              <Col span={8}>
+                <Form.Item name="skills" label="Skills">
+                  <Select mode="tags" style={{ width: "100%" }} />
+                </Form.Item>
+              </Col>
+              <Col span={8}>
+                <Form.Item name="current_ctc" label="Current CTC">
+                  <Input />
+                </Form.Item>
+              </Col>
+              <Col span={8}>
+                <Form.Item name="expected_ctc" label="Expected CTC">
+                  <Input />
+                </Form.Item>
+              </Col>
 
-            <Form.Item
-              name="profile_stage"
-              label="Profile stage"
-              rules={[
-                { required: true, message: "Please select profile stage" },
-              ]}
-            >
-              <Select placeholder="Select Profile Stage">
-                <Option value="Open">Open</Option>
-                <Option value="Closed">Closed</Option>
-              </Select>
-            </Form.Item>
+              <Col span={8}>
+                <Form.Item name="band" label="Band">
+                  <Select>
+                    {["L0", "L1", "L2", "L3", "L4"].map((b) => (
+                      <Option key={b} value={b}>
+                        {b}
+                      </Option>
+                    ))}
+                  </Select>
+                </Form.Item>
+              </Col>
+              <Col span={8}>
+                <Form.Item name="reference" label="Reference">
+                  <Input />
+                </Form.Item>
+              </Col>
+              <Col span={8}>
+                <Form.Item name="position" label="Position">
+                  <Select>
+                    {[
+                      "Python Developer",
+                      "EMD Developer",
+                      "Intern",
+                      "Trainee",
+                      "C++ Developer",
+                      "Accounts",
+                      "Developer",
+                    ].map((p) => (
+                      <Option key={p} value={p}>
+                        {p}
+                      </Option>
+                    ))}
+                  </Select>
+                </Form.Item>
+              </Col>
 
-            <Form.Item name="current_company" label="Current Company">
-              <Input placeholder="Enter current company" />
-            </Form.Item>
+              <Col span={8}>
+                <Form.Item name="department" label="Department">
+                  <Select>
+                    {[
+                      "IT",
+                      "EMDB",
+                      "Accounts",
+                      "Financial",
+                      "Python",
+                      "Engineering",
+                    ].map((d) => (
+                      <Option key={d} value={d}>
+                        {d}
+                      </Option>
+                    ))}
+                  </Select>
+                </Form.Item>
+              </Col>
+              <Col span={8}>
+                <Form.Item name="progress_status" label="Progress Status">
+                  <Select>
+                    {[
+                      "Application Received",
+                      "Phone Screening",
+                      "L1 Interview",
+                      "Yet to Share",
+                      "L2 Interview",
+                      "Shared with Client",
+                      "Final Discussion",
+                      "Offer Released",
+                      "Joined",
+                      "Declined Offer",
+                      "Rejected",
+                      "Withdrawn",
+                      "No Show",
+                      "Buffer",
+                      "Hold",
+                    ].map((status) => (
+                      <Option key={status} value={status}>
+                        {status}
+                      </Option>
+                    ))}
+                  </Select>
+                </Form.Item>
+              </Col>
+              <Col span={8}>
+                <Form.Item name="status_date" label="Status Date">
+                  <DatePicker style={{ width: "100%" }} />
+                </Form.Item>
+              </Col>
+              <Col span={8}>
+                <Form.Item name="skills" label="Skills">
+                  <Input.TextArea placeholder="Enter skills" />
+                </Form.Item>
+              </Col>
 
-            <Form.Item name="current_location" label="Current Location">
-              <Input placeholder="Enter current location" />
-            </Form.Item>
+              <Col span={8}>
+                <Form.Item name="experience" label="Experience (Years)">
+                  <InputNumber
+                    min={0}
+                    placeholder="Enter years of experience"
+                    style={{ width: "100%" }}
+                  />
+                </Form.Item>
+              </Col>
 
-            <Form.Item name="permanent_location" label="Permanent Location">
-              <Input placeholder="Enter permanent location" />
-            </Form.Item>
+              <Col span={8}>
+                <Form.Item name="current_ctc" label="Current CTC">
+                  <Input placeholder="Enter current CTC" />
+                </Form.Item>
+              </Col>
 
-            <Form.Item name="qualification" label="Qualification">
-              <Input placeholder="Enter qualification" />
-            </Form.Item>
+              <Col span={8}>
+                <Form.Item name="expected_ctc" label="Expected CTC">
+                  <Input placeholder="Enter expected CTC" />
+                </Form.Item>
+              </Col>
 
-            <Form.Item name="reference" label="Reference">
-              <Input placeholder="Enter reference(eg., LinkedIn, Internal" />
-            </Form.Item>
+              <Col span={8}>
+                <Form.Item name="Band" label="Band">
+                  <Select placeholder="Select Band">
+                    {["L0", "L1", "L2", "L3", "L4"].map((Band) => (
+                      <Option key={Band} value={Band}>
+                        {Band}
+                      </Option>
+                    ))}
+                  </Select>
+                </Form.Item>
+              </Col>
 
-            {/* 🔥 Position & Department */}
-            <Form.Item
-              name="position"
-              label="Position"
-              rules={[{ required: true }]}
-            >
-              <Select placeholder="Select position">
-                {[
-                  "Python Developer",
-                  "EMD Developer",
-                  "Intern",
-                  "Trainee",
-                  "C++ Developer",
-                  "Accounts",
-                  "Developer",
-                ].map((pos) => (
-                  <Option key={pos} value={pos}>
-                    {pos}
-                  </Option>
-                ))}
-              </Select>
-            </Form.Item>
+              <Col span={8}>
+                <Form.Item name="notice_period" label="Notice Period">
+                  <Input placeholder="Enter notice period" />
+                </Form.Item>
+              </Col>
 
-            <Form.Item
-              name="department"
-              label="Department"
-              rules={[{ required: true }]}
-            >
-              <Select placeholder="Select department">
-                {[
-                  "IT",
-                  "EMDB",
-                  "Accounts",
-                  "Financial",
-                  "Python",
-                  "Engineering",
-                ].map((dept) => (
-                  <Option key={dept} value={dept}>
-                    {dept}
-                  </Option>
-                ))}
-              </Select>
-            </Form.Item>
+              <Col xs={24}>
+                <Form.Item name="comments" label="Comments">
+                  <Input.TextArea placeholder="Add any comments" />
+                </Form.Item>
+              </Col>
 
-            {/* 🔥 Progress & Status */}
-            <Form.Item
-              name="progress_status"
-              label="Progress Status"
-              rules={[{ required: true }]}
-            >
-              <Select>
-                {[
-                  "Application Received",
-                  "Phone Screening",
-                  "L1 Interview",
-                  "Yet to Share",
-                  "L2 Interview",
-                  "Shared with Client",
-                  "Final Discussion",
-                  "Offer Released",
-                  "Joined",
-                  "Declined Offer",
-                  "Rejected",
-                  "Withdrawn",
-                  "No Show",
-                  "Buffer",
-                  "Hold",
-                ].map((status) => (
-                  <Option key={status} value={status}>
-                    {status}
-                  </Option>
-                ))}
-              </Select>
-            </Form.Item>
+              <Col xs={24}>
+                <Form.Item label="Resume / Attachment">
+                  <input
+                    type="file"
+                    accept=".pdf,.doc,.docx"
+                    onChange={handleFileChange}
+                  />
+                  {attachmentUrl && (
+                    <a
+                      href={attachmentUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      style={{ marginLeft: "10px" }}
+                    >
+                      View Resume
+                    </a>
+                  )}
+                </Form.Item>
+              </Col>
 
-            {/* 🔥 Dates */}
-            <Form.Item
-              name="entry_date"
-              label="Entry Date"
-              rules={[{ required: true }]}
-            >
-              <DatePicker style={{ width: "100%" }} />
-            </Form.Item>
-
-            <Form.Item
-              name="status_date"
-              label="Status Date"
-              rules={[{ required: true }]}
-            >
-              <DatePicker style={{ width: "100%" }} />
-            </Form.Item>
-
-            {/* 🔥 Other Details */}
-            <Form.Item name="skills" label="Skills">
-              <Input.TextArea placeholder="Enter skills" />
-            </Form.Item>
-
-            <Form.Item name="experience" label="Experience (Years)">
-              <InputNumber
-                min={0}
-                placeholder="Enter years of experience"
-                style={{ width: "100%" }}
-              />
-            </Form.Item>
-
-            <Form.Item name="current_ctc" label="Current CTC">
-              <Input placeholder="Enter current CTC" />
-            </Form.Item>
-
-            <Form.Item name="expected_ctc" label="Expected CTC">
-              <Input placeholder="Enter expected CTC" />
-            </Form.Item>
-
-            <Form.Item name="Band" label="Band">
-              <Select placeholder="Select Band">
-                {["L0", "L1", "L2", "L3", "L4"].map((Band) => (
-                  <Option key={Band} value={Band}>
-                    {Band}
-                  </Option>
-                ))}
-              </Select>
-            </Form.Item>
-
-            <Form.Item name="notice_period" label="Notice Period">
-              <Input placeholder="Enter notice period" />
-            </Form.Item>
-
-            <Form.Item name="comments" label="Comments">
-              <Input.TextArea placeholder="Add any comments" />
-            </Form.Item>
-
-            <Form.Item label="Resume / Attachment">
-              <input
-                type="file"
-                accept=".pdf,.doc,.docx"
-                onChange={handleFileChange}
-              />
-              {attachmentUrl && (
-                <a
-                  href={attachmentUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  style={{ marginLeft: "10px" }}
-                >
-                  View Resume
-                </a>
-              )}
-            </Form.Item>
-
-            <Form.Item className="form-submit">
-              <Button type="primary" htmlType="submit" block loading={loading}>
-                {isEditing ? "Update Candidate" : "Add Candidate"}
-              </Button>
-            </Form.Item>
+              <Col xs={24}>
+                <Form.Item className="form-submit">
+                  <Button
+                    type="primary"
+                    htmlType="submit"
+                    block
+                    loading={loading}
+                  >
+                    {isEditing ? "Update Candidate" : "Add Candidate"}
+                  </Button>
+                </Form.Item>
+              </Col>
+            </Row>
           </Form>
         </div>
       </div>

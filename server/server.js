@@ -50,7 +50,7 @@ app.use("/api/hr/protected", protectedHrRoutes);
 
 
 // Sync Database & Start Server
-sequelize.sync().then(() => { // Use 'alter: true'
+sequelize.sync({ alter: false }).then(() => { // Use 'alter: true'
   console.log("✅ Database Synced!");
 
   app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

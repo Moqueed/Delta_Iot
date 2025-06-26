@@ -82,10 +82,7 @@ const AdminDashboard = () => {
       {/* Header */}
       <div className="dashboard-header">
         <div className="header-left">
-          <img src="/logo.png" alt="logo" className="logo" />
-          <Link to="/admin-dashboard">
-            <HomeOutlined className="home-icon" />
-          </Link>
+          <img src="/images/hrms-logo.jpg" alt="logo" className="logo" />
         </div>
         <h2 className="header-title">Admin Dashboard</h2>
         <div className="header-right">

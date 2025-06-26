@@ -1,7 +1,9 @@
 // pages/RejectedDataPage.js
 import React, { useEffect, useState } from "react";
-import { Table, Typography, Tag, Spin, Alert } from "antd";
+import { Table, Typography, Tag, Spin, Alert, Button } from "antd";
 import axios from "axios";
+import DashboardHomeLink from "../../components/DashboardHomeLink";
+import { LogoutOutlined } from "@ant-design/icons";
 
 const { Title } = Typography;
 
@@ -66,22 +68,52 @@ const RejectedDataPage = () => {
     },
   ];
 
-  return (
-    <div style={{ padding: "20px" }}>
-      <Title level={2}>Rejected Candidates</Title>
+  const handleLogout = () => {
+    localStorage.clear();
+    message.success("Logout successfully");
+    window.location.href = "/login";
+  };
 
-      {loading ? (
-        <Spin size="large" />
-      ) : error ? (
-        <Alert message={error} type="error" />
-      ) : (
-        <Table
-          dataSource={rejectedData}
-          columns={columns}
-          rowKey={(record) => record.id}
-          bordered
-        />
-      )}
+  return (
+    <div className="total-master-data-container">
+      <div className="candidate-header">
+        <div className="header-left">
+          <img src="/images/hrms-logo.jpg" alt="logo" className="logo" />
+          <DashboardHomeLink />
+        </div>
+
+        <h2>Rejected Candidates</h2>
+
+        <div className="header-right">
+          <span className="welcome-text">Welcome: Moqueed Ahmed</span>
+          <Button
+            icon={<LogoutOutlined />}
+            onClick={handleLogout}
+            type="primary"
+            danger
+            size="small"
+            style={{ marginLeft: "15px" }}
+          >
+            Logout
+          </Button>
+        </div>
+      </div>
+      <div style={{ padding: "20px" }}>
+        {/* <Title level={2}>Rejected Candidates</Title> */}
+
+        {loading ? (
+          <Spin size="large" />
+        ) : error ? (
+          <Alert message={error} type="error" />
+        ) : (
+          <Table
+            dataSource={rejectedData}
+            columns={columns}
+            rowKey={(record) => record.id}
+            bordered
+          />
+        )}
+      </div>
     </div>
   );
 };

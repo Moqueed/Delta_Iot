@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Form, Input, Select, DatePicker, Button, message } from "antd";
+import { Form, Input, Select, DatePicker, Button, message, Row, Col } from "antd";
 import dayjs from "dayjs";
 import {
   deleteActiveCandidate,
@@ -11,6 +11,7 @@ import {
   updateBufferData,
 } from "../../api/activeList";
 import { updateRejectedCandidate } from "../../api/rejected";
+import "./CandidateForm.css";
 
 const { Option } = Select;
 
@@ -33,7 +34,6 @@ const CandidateForm = ({ candidate, onUpdate }) => {
       const status = values.progress_status.toLowerCase();
 
       if (rejectedStatuses.includes(status)) {
-        // Move to Rejected
         await updateRejectedCandidate(
           candidate.id,
           values.progress_status,
@@ -53,25 +53,22 @@ const CandidateForm = ({ candidate, onUpdate }) => {
           "shared with client",
         ].includes(status)
       ) {
-        // Move to Total Master Data
         await UpdateTotalMasterData(candidate.id, status);
         message.success("Candidate moved to Total Master Data");
       } else if (
-        ["offer released", "final discussion", "hr round cleared"].includes(status)
+        ["offer released", "final discussion", "hr round cleared"].includes(
+          status
+        )
       ) {
-        // Move to About To Join
         await UpdateAboutToJoin(candidate.id, status);
         message.success("Candidate moved to About To Join");
       } else if (["joined"].includes(status)) {
-        // Move to NewlyJoined
         await updateNewlyJoined(candidate.id, status);
         message.success("Candidate moved to Newly Joined");
-         } else if (["hold","buffer"].includes(status)) {
-        // Move to BufferData
+      } else if (["hold", "buffer"].includes(status)) {
         await updateBufferData(candidate.id, status);
         message.success("Candidate moved to Buffer Data");
       } else {
-        // Just update in Active List
         await updateActiveList({
           ...values,
           candidate_id: candidate.candidate_id,
@@ -79,7 +76,7 @@ const CandidateForm = ({ candidate, onUpdate }) => {
         message.success("Candidate updated successfully");
       }
 
-      onUpdate(); // Refresh list
+      onUpdate();
     } catch (error) {
       console.error("Error updating candidate:", error);
       message.error("Error updating candidate");
@@ -102,6 +99,7 @@ const CandidateForm = ({ candidate, onUpdate }) => {
 
   return (
     <Form
+      className="candidate-form compact-candidate-form"
       form={form}
       layout="vertical"
       initialValues={{
@@ -111,159 +109,218 @@ const CandidateForm = ({ candidate, onUpdate }) => {
       }}
       onValuesChange={handleFormChange}
       onFinish={handleSubmit}
-      style={{
-        padding: 24,
-        border: "1px solid #f0f0f0",
-        borderRadius: 8,
-        marginBottom: 32,
-      }}
     >
-      <Form.Item name="HR_name" label="HR Name">
-        <Input />
-      </Form.Item>
-      <Form.Item name="HR_mail" label="HR Email">
-        <Input />
-      </Form.Item>
-      <Form.Item name="candidate_name" label="Candidate Name">
-        <Input />
-      </Form.Item>
-      <Form.Item name="candidate_email_id" label="Candidate Email">
-        <Input />
-      </Form.Item>
-      <Form.Item name="contact_number" label="Contact Number">
-        <Input />
-      </Form.Item>
-      <Form.Item
-        name="profile_stage"
-        label="Profile Stage"
-        rules={[{ required: true }]}
-      >
-        <Select placeholder="Select Profile Stage">
-          <Option value="Open">Open</Option>
-          <Option value="Closed">Closed</Option>
-        </Select>
-      </Form.Item>
-      <Form.Item name="current_company" label="Current Company">
-        <Input />
-      </Form.Item>
-      <Form.Item name="current_location" label="Current Location">
-        <Input />
-      </Form.Item>
-      <Form.Item name="permanent_location" label="Permanent Location">
-        <Input />
-      </Form.Item>
-      <Form.Item name="qualification" label="Qualification">
-        <Input />
-      </Form.Item>
-      <Form.Item name="experience" label="Experience (Years)">
-        <Input />
-      </Form.Item>
-      <Form.Item name="skills" label="Skills">
-        <Select mode="tags" style={{ width: "100%" }} />
-      </Form.Item>
-      <Form.Item name="current_ctc" label="Current CTC">
-        <Input />
-      </Form.Item>
-      <Form.Item name="expected_ctc" label="Expected CTC">
-        <Input />
-      </Form.Item>
-      <Form.Item name="band" label="Band">
-        <Select>
-          {["L0", "L1", "L2", "L3", "L4"].map((b) => (
-            <Option key={b} value={b}>
-              {b}
-            </Option>
-          ))}
-        </Select>
-      </Form.Item>
-      <Form.Item name="reference" label="Reference">
-        <Input />
-      </Form.Item>
-      <Form.Item name="position" label="Position">
-        <Select>
-          {[
-            "Python Developer",
-            "EMD Developer",
-            "Intern",
-            "Trainee",
-            "C++ Developer",
-            "Accounts",
-            "Developer",
-          ].map((p) => (
-            <Option key={p} value={p}>
-              {p}
-            </Option>
-          ))}
-        </Select>
-      </Form.Item>
-      <Form.Item name="department" label="Department">
-        <Select>
-          {["IT", "EMDB", "Accounts", "Financial", "Python", "Engineering"].map(
-            (d) => (
-              <Option key={d} value={d}>
-                {d}
-              </Option>
-            )
-          )}
-        </Select>
-      </Form.Item>
-      <Form.Item name="progress_status" label="Progress Status">
-        <Select>
-          {[
-            "Application Received",
-            "Phone Screening",
-            "L1 Interview",
-            "Yet to Share",
-            "L2 Interview",
-            "Shared with Client",
-            "Final Discussion",
-            "Offer Released",
-            "Joined",
-            "Declined Offer",
-            "Rejected",
-            "Withdrawn",
-            "No Show",
-            "Buffer",
-            "Hold",
-          ].map((status) => (
-            <Option key={status} value={status}>
-              {status}
-            </Option>
-          ))}
-        </Select>
-      </Form.Item>
+      <Row gutter={16}>
+        <Col span={8}>
+          <Form.Item name="HR_name" label="HR Name">
+            <Input />
+          </Form.Item>
+        </Col>
+        <Col span={8}>
+          <Form.Item name="HR_mail" label="HR Email">
+            <Input />
+          </Form.Item>
+        </Col>
+        <Col span={8}>
+          <Form.Item name="entry_date" label="Entry Date">
+            <DatePicker style={{ width: "100%" }} />
+          </Form.Item>
+        </Col>
 
-      {isRejected && (
-        <Form.Item
-          name="rejection_reason"
-          label="Rejection Reason"
-          rules={[
-            { required: true, message: "Please provide a rejection reason" },
-          ]}
-        >
-          <Input.TextArea placeholder="Enter reason for rejection" rows={3} />
-        </Form.Item>
-      )}
+        <Col span={8}>
+          <Form.Item name="candidate_name" label="Candidate Name">
+            <Input />
+          </Form.Item>
+        </Col>
+        <Col span={8}>
+          <Form.Item name="candidate_email_id" label="Candidate Email">
+            <Input />
+          </Form.Item>
+        </Col>
+        <Col span={8}>
+          <Form.Item name="contact_number" label="Contact Number">
+            <Input />
+          </Form.Item>
+        </Col>
 
-      <Form.Item name="entry_date" label="Entry Date">
-        <DatePicker style={{ width: "100%" }} />
-      </Form.Item>
-      <Form.Item name="status_date" label="Status Date">
-        <DatePicker style={{ width: "100%" }} />
-      </Form.Item>
+        <Col span={8}>
+          <Form.Item name="profile_stage" label="Profile Stage">
+            <Select>
+              <Option value="Open">Open</Option>
+              <Option value="Closed">Closed</Option>
+            </Select>
+          </Form.Item>
+        </Col>
+        <Col span={8}>
+          <Form.Item name="current_company" label="Current Company">
+            <Input />
+          </Form.Item>
+        </Col>
+        <Col span={8}>
+          <Form.Item name="current_location" label="Current Location">
+            <Input />
+          </Form.Item>
+        </Col>
 
-      <Form.Item>
-        <Button type="primary" htmlType="submit" style={{ marginRight: 10 }}>
-          Update
-        </Button>
-        <Button
-          type="default"
-          onClick={handleReview}
-          style={{ background: "#faad14", color: "#fff", border: "none" }}
-        >
-          Request Review
-        </Button>
-      </Form.Item>
+        <Col span={8}>
+          <Form.Item name="permanent_location" label="Permanent Location">
+            <Input />
+          </Form.Item>
+        </Col>
+        <Col span={8}>
+          <Form.Item name="qualification" label="Qualification">
+            <Input />
+          </Form.Item>
+        </Col>
+        <Col span={8}>
+          <Form.Item name="experience" label="Experience (Years)">
+            <Input />
+          </Form.Item>
+        </Col>
+
+        <Col span={8}>
+          <Form.Item name="skills" label="Skills">
+            <Select mode="tags" style={{ width: "100%" }} />
+          </Form.Item>
+        </Col>
+        <Col span={8}>
+          <Form.Item name="current_ctc" label="Current CTC">
+            <Input />
+          </Form.Item>
+        </Col>
+        <Col span={8}>
+          <Form.Item name="expected_ctc" label="Expected CTC">
+            <Input />
+          </Form.Item>
+        </Col>
+
+        <Col span={8}>
+          <Form.Item name="band" label="Band">
+            <Select>
+              {["L0", "L1", "L2", "L3", "L4"].map((b) => (
+                <Option key={b} value={b}>
+                  {b}
+                </Option>
+              ))}
+            </Select>
+          </Form.Item>
+        </Col>
+        <Col span={8}>
+          <Form.Item name="reference" label="Reference">
+            <Input />
+          </Form.Item>
+        </Col>
+        <Col span={8}>
+          <Form.Item name="position" label="Position">
+            <Select>
+              {[
+                "Python Developer",
+                "EMD Developer",
+                "Intern",
+                "Trainee",
+                "C++ Developer",
+                "Accounts",
+                "Developer",
+              ].map((p) => (
+                <Option key={p} value={p}>
+                  {p}
+                </Option>
+              ))}
+            </Select>
+          </Form.Item>
+        </Col>
+
+        <Col span={8}>
+          <Form.Item name="department" label="Department">
+            <Select>
+              {[
+                "IT",
+                "EMDB",
+                "Accounts",
+                "Financial",
+                "Python",
+                "Engineering",
+              ].map((d) => (
+                <Option key={d} value={d}>
+                  {d}
+                </Option>
+              ))}
+            </Select>
+          </Form.Item>
+        </Col>
+        <Col span={8}>
+          <Form.Item name="progress_status" label="Progress Status">
+            <Select>
+              {[
+                "Application Received",
+                "Phone Screening",
+                "L1 Interview",
+                "Yet to Share",
+                "L2 Interview",
+                "Shared with Client",
+                "Final Discussion",
+                "Offer Released",
+                "Joined",
+                "Declined Offer",
+                "Rejected",
+                "Withdrawn",
+                "No Show",
+                "Buffer",
+                "Hold",
+              ].map((status) => (
+                <Option key={status} value={status}>
+                  {status}
+                </Option>
+              ))}
+            </Select>
+          </Form.Item>
+        </Col>
+        <Col span={8}>
+          <Form.Item name="status_date" label="Status Date">
+            <DatePicker style={{ width: "100%" }} />
+          </Form.Item>
+        </Col>
+
+        {isRejected && (
+          <Col span={24}>
+            <Form.Item
+              name="rejection_reason"
+              label="Rejection Reason"
+              rules={[
+                {
+                  required: true,
+                  message: "Please provide a rejection reason",
+                },
+              ]}
+            >
+              <Input.TextArea
+                placeholder="Enter reason for rejection"
+                rows={3}
+              />
+            </Form.Item>
+          </Col>
+        )}
+
+        <Col span={24}>
+          <Form.Item>
+            <Button
+              type="primary"
+              htmlType="submit"
+              className="update-btn"
+              style={{ marginRight: 8 }}
+            >
+              Update
+            </Button>
+            <Button
+              type="default"
+              onClick={handleReview}
+              className="review-btn"
+            >
+              Request Review
+            </Button>
+          </Form.Item>
+        </Col>
+      </Row>
     </Form>
   );
 };

@@ -6,6 +6,7 @@ const HR = require("./HR");
 const AssignToHR = require("./AssignToHR");
 const AssignedCandidate = require("./AssignedCandidate");
 const sequelize = require("../config/database");
+const HRVacancyAssignment = require("./HRVacancyAssignment");
 // const { TotalMasterData } = require("./TotalData");
 
 
@@ -16,7 +17,8 @@ const models = {
   Candidate,
   HR,
   AssignToHR,
-  AssignedCandidate
+  AssignedCandidate,
+  HRVacancyAssignment
 };
 
 

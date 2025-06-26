@@ -15,22 +15,29 @@ export const fetchPositions = async () => {
 // Create a new active position
 export const createPosition = async (data) => {
   try {
+    console.log("inside create position");
+    
     const payload = {
-      job_id: data.job_id || null,
-      position: data.position?.trim() || "Unknown Position",
-      skills: Array.isArray(data.skills) ? data.skills.map(skill => skill.trim()) : [],
-      department: data.department?.trim() || "General",
-      vacancy: Number(data.vacancy) || 1,
-      location: data.location?.trim() || "Remote",
-      description: data.description?.trim() || "No description provided",
+      position: data.position?.trim(),
+      skills: Array.isArray(data.skills)
+        ? data.skills.map((skill) => skill.trim())
+        : data.skills?.split(",").map((s) => s.trim()) || [],
+      department: data.department?.trim(),
+      vacancy: Number(data.vacancy) || 0, // ✅ your form uses `vacancies`, backend expects `vacancy`
+      minimum_experience: Number(data.minimum_experience) || 0,
+      maximum_experience: Number(data.maximum_experience) || 0,
+      job_description: data.job_description?.trim(),
+      HRs: Array.isArray(data.HRs)
+        ? data.HRs.map((h) => h.trim())
+        : data.HRs?.split(",").map((h) => h.trim()) || [],
     };
 
-    console.log("📨 Sending data:", JSON.stringify(data, null, 2));
+    console.log("📨 Sending payload:", JSON.stringify(payload, null, 2));
 
-    const response = await axiosInstance.post("/api/positions/add-position", data);
+    const response = await axiosInstance.post("/api/positions/add-position", payload);
     return response.data;
   } catch (error) {
-    console.error("Error creating position:", error.response?.data || error.message);
+    console.error("❌ Error creating position:", error.response?.data || error.message);
     throw error;
   }
 };

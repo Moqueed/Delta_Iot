@@ -1,6 +1,30 @@
 const express = require("express");
 const router = express.Router();
 const HRVacancy = require("../models/HRVacancy");
+const HRVacancyAssignment = require("../models/HRVacancyAssignment");
+
+router.get("/by-email/:email", async (req, res) => {
+  const { email } = req.params;
+
+  try {
+    const assignments = await HRVacancyAssignment.findAll({
+      where: { hr_email: email },
+      attributes: ["job_id"],
+    });
+
+    const jobIds = assignments.map((a) => a.job_id);
+
+    const vacancies = await HRVacancy.findAll({
+      where: { job_id: jobIds },
+    });
+
+    res.json(vacancies);
+  } catch (error) {
+    console.error("❌ Failed to fetch HR vacancies:", error.message);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
 
 // 📌 GET all HRVacancies
 router.get("/get-vacancies", async (req, res) => {

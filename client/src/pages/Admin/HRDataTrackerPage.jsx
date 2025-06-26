@@ -113,7 +113,7 @@ const HRDataTrackerPage = () => {
     <div className="tracker-container">
       <div className="tracker-header">
         <div className="header-left">
-          <img src="/logo.png" alt="logo" className="logo" />
+         <img src="/images/hrms-logo.jpg" alt="logo" className="logo" />
           <Link to="/admin-dashboard">
             <HomeOutlined className="home-icon" />
           </Link>

@@ -168,10 +168,11 @@ router.post(
 );
 
 //fetch the upload file
-router.get("/upload/:filename", (req, res) => {
+router.get("/resume/:filename", (req, res) => {
   const filename = req.params.filename;
   const filePath = path.join(__dirname, "../uploads", filename);
 
+  res.type("application/pdf");
   res.sendFile(filePath, (err) => {
     if (err) {
       console.error("Error sending file:", err);

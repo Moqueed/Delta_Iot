@@ -1,16 +1,25 @@
 import React, { useEffect, useState } from "react";
-import { message, Spin } from "antd";
+import { Button, message, Spin } from "antd";
 import axiosInstance from "../../api";
-import CandidateForm from "./CandidateForm"; // Import the new component
+import CandidateForm from "./CandidateForm";
+import "./ActiveList.css";
+import "./CandidateForm.css";
+import { HomeOutlined, LogoutOutlined } from "@ant-design/icons";
+import { Link } from "react-router-dom";
+import DashboardHomeLink from "../../components/DashboardHomeLink";
 
 const ActiveList = () => {
   const [loading, setLoading] = useState(true);
   const [candidates, setCandidates] = useState([]);
+  const [selectedCandidate, setSelectedCandidate] = useState(null);
 
   const fetchCandidates = async () => {
     try {
       const response = await axiosInstance.get("/api/activelist/fetch");
       setCandidates(response.data);
+      if (response.data.length > 0) {
+        setSelectedCandidate(response.data[0]);
+      }
     } catch (error) {
       console.error("Error fetching candidates:", error);
       message.error("Failed to fetch candidates.");
@@ -19,20 +28,80 @@ const ActiveList = () => {
     }
   };
 
+  const handleLogout = () => {
+    localStorage.clear();
+    message.success("Logout successfully");
+    window.location.href = "/login";
+  };
+
   useEffect(() => {
     fetchCandidates();
   }, []);
 
   if (loading) {
-    return <Spin size="large" style={{ display: "block", margin: "50px auto" }} />;
+    return <Spin size="large" className="loading-spinner" />;
   }
 
   return (
-    <div style={{ maxWidth: "900px", margin: "0 auto", padding: "20px" }}>
-      <h2 style={{ textAlign: "center", marginBottom: 24 }}>Active Candidates List</h2>
-      {candidates.map((candidate) => (
-        <CandidateForm key={candidate.candidate_id} candidate={candidate} onUpdate={fetchCandidates} />
-      ))}
+    <div className="active-list-layout">
+      <div className="active-list-header">
+        <div className="header-left">
+          <img src="/images/hrms-logo.jpg" alt="logo" className="logo" />
+          <DashboardHomeLink/>
+        </div>
+
+        <h2>Active List</h2>
+
+        <div className="header-right">
+          <span className="welcome-text">Welcome: Moqueed Ahmed</span>
+          <Button
+            icon={<LogoutOutlined />}
+            onClick={handleLogout}
+            type="primary"
+            danger
+            size="small"
+            style={{ marginLeft: "15px" }}
+          >
+            Logout
+          </Button>
+        </div>
+      </div>
+
+      <div className="active-list-body">
+        <div className="candidate-sidebar">
+          <h3>Active candidates List</h3>
+          <ul className="candidate-list">
+            {candidates.map((candidate) => (
+              <div key={candidate.candidate_id} className="candidate-wrapper">
+                <li
+                  key={candidate.candidate_id}
+                  className={`candidate-item ${
+                    selectedCandidate?.candidate_id === candidate.candidate_id
+                      ? "active"
+                      : ""
+                  }`}
+                  onClick={() => setSelectedCandidate(candidate)}
+                >
+                  {candidate.candidate_name}
+                </li>
+              </div>
+            ))}
+          </ul>
+        </div>
+        <div className="candidate-form-wrapper">
+          {selectedCandidate ? (
+            <CandidateForm
+              key={selectedCandidate.candidate_id}
+              candidate={selectedCandidate}
+              onUpdate={fetchCandidates}
+            />
+          ) : (
+            <div className="no-candidate-selected">
+              Select a candidate to view details
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 };

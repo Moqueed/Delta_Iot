@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { Table, Spin, message } from "antd";
+import { Table, Spin, message, Button } from "antd";
 import { fetchAboutToJoin } from "../../api/totalData";
+import DashboardHomeLink from "../../components/DashboardHomeLink";
+import { LogoutOutlined } from "@ant-design/icons";
 
 
 const AboutToJoinPage = () => {
@@ -35,14 +37,44 @@ const AboutToJoinPage = () => {
     
   ];
 
+   const handleLogout = () => {
+      localStorage.clear();
+      message.success("Logout successfully");
+      window.location.href = "/login";
+    };
+
   return (
+    <div className="total-master-data-container">
+      <div className="candidate-header">
+        <div className="header-left">
+         <img src="/images/hrms-logo.jpg" alt="logo" className="logo" />
+          <DashboardHomeLink />
+        </div>
+
+        <h2>About to Join</h2>
+
+        <div className="header-right">
+          <span className="welcome-text">Welcome: Moqueed Ahmed</span>
+          <Button
+            icon={<LogoutOutlined />}
+            onClick={handleLogout}
+            type="primary"
+            danger
+            size="small"
+            style={{ marginLeft: "15px" }}
+          >
+            Logout
+          </Button>
+        </div>
+      </div>
     <div style={{ padding: 24 }}>
-      <h2 style={{ textAlign: "center" }}>About To Join</h2>
+      {/* <h2 style={{ textAlign: "center" }}>About To Join</h2> */}
       {loading ? (
         <Spin size="large" style={{ display: "block", margin: "50px auto" }} />
       ) : (
         <Table columns={columns} dataSource={data} rowKey="candidate_email_id" />
       )}
+    </div>
     </div>
   );
 };

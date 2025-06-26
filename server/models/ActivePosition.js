@@ -1,11 +1,13 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/database");
 const HRVacancy = require("./HRVacancy");
+const HRVacancyAssignment = require("./HRVacancyAssignment");
+const { sendPositionMail } = require("../utils/emailHelper");
 
 const ActivePosition = sequelize.define("ActivePosition", {
   job_id: {
-    type: DataTypes.UUID,
-    defaultValue: DataTypes.UUIDV4,
+    type: DataTypes.INTEGER,
+    autoIncrement: true,
     primaryKey: true,
   },
   position: {
@@ -40,7 +42,7 @@ const ActivePosition = sequelize.define("ActivePosition", {
   },
   manager: {
     type: DataTypes.STRING,
-    allowNull: false,
+    allowNull: true,
   },
   minimum_experience: {
     type: DataTypes.INTEGER,
@@ -55,7 +57,9 @@ const ActivePosition = sequelize.define("ActivePosition", {
     validate: {
       isGreaterThanMin(value) {
         if (value < this.minimum_experience) {
-          throw new Error("Maximum experience must be greater than minimum experience");
+          throw new Error(
+            "Maximum experience must be greater than minimum experience"
+          );
         }
       },
     },
@@ -83,21 +87,66 @@ const ActivePosition = sequelize.define("ActivePosition", {
 // Auto-sync to HRVacancy
 ActivePosition.afterCreate(async (position) => {
   try {
+    console.log("📦 Syncing to HRVacancy... job_id:", position.job_id);
     await HRVacancy.create({
       job_id: position.job_id,
       position: position.position,
       skills: position.skills,
       department: position.department,
       vacancy: position.vacancy,
-      manager: position.manager,
       minimum_experience: position.minimum_experience,
       maximum_experience: position.maximum_experience,
       job_description: position.job_description,
       HRs: position.HRs,
     });
+
+    // Use bulkCreate for performance
+    const assignments = position.HRs.map((email) => ({
+      job_id: position.job_id,
+      hr_email: email,
+    }));
+    await HRVacancyAssignment.bulkCreate(assignments);
+
+     // Send email to each HR
+    for (const email of hrEmails) {
+      await sendPositionMail(position.position, position.job_description, email);
+    }
+
+    console.log("✅ Synced to HRVacancy and HRVacancyAssignment");
   } catch (error) {
-    console.error("🚨 Failed to sync with HRVacancy:", error.message);
+    console.error("❌ Sync failed:", error.message);
   }
 });
+
+// ✅ Optional: Hook for update (reassign HRs)
+ActivePosition.afterUpdate(async (position) => {
+  try {
+    await HRVacancyAssignment.destroy({ where: { job_id: position.job_id } });
+
+    const assignments = position.HRs.map((email) => ({
+      job_id: position.job_id,
+      hr_email: email,
+    }));
+    await HRVacancyAssignment.bulkCreate(assignments);
+
+    console.log("🔄 HR assignments updated");
+  } catch (error) {
+    console.error("❌ Failed to update HR assignments:", error.message);
+  }
+});
+
+// ✅ Associations
+ActivePosition.associate = (models) => {
+  ActivePosition.hasOne(models.HRVacancy, {
+    foreignKey: "job_id",
+    sourceKey: "job_id",
+    onDelete: "CASCADE",
+  });
+
+  ActivePosition.hasMany(models.HRVacancyAssignment, {
+    foreignKey: "job_id",
+    sourceKey: "job_id",
+  });
+};
 
 module.exports = ActivePosition;

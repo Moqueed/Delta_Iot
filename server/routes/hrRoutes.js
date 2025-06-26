@@ -2,6 +2,19 @@ const express = require("express");
 const router = express.Router();
 const HR = require("../models/HR");
 
+
+router.get("/email/:email", async (req, res) => {
+  const { email } = req.params;
+  try {
+    const hr = await HR.findOne({ where: { email } });
+    if (!hr) return res.status(404).json({ message: "HR not found" });
+    res.json({ name: hr.name });
+  } catch (error) {
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+
 // Add HR
 router.post("/add", async (req, res) => {
   try {

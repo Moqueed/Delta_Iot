@@ -20,12 +20,10 @@ router.post("/add-position", async (req, res) => {
   try {
     console.log("🛠️ Received data:", req.body);
     const {
-      job_id,
       position,
       skills,
       department,
       vacancy,
-      manager,
       minimum_experience,
       maximum_experience,
       job_description,
@@ -33,19 +31,17 @@ router.post("/add-position", async (req, res) => {
     } = req.body;
 
     // Auto-convert string to array if needed
-    const formattedSkills = Array.isArray(skills) ? skills : skills.split(",").map((s) => s.trim());
-    const formattedHRs = Array.isArray(HRs) ? HRs : HRs.split(",").map((h) => h.trim());
+    const formattedSkills = Array.isArray(skills) ? skills : skills.split(",").map((s) => s.trim()) || [];
+    const formattedHRs = Array.isArray(HRs) ? HRs : HRs.split(",").map((h) => h.trim()) || [];
 
     // Ensure all fields are provided and arrays aren't empty
     if (
-      !job_id ||
       !position ||
       !formattedSkills.length ||
       !department ||
-      !vacancy ||
-      !manager ||
-      !minimum_experience ||
-      !maximum_experience ||
+      !vacancy == null ||
+      !minimum_experience == null ||
+      !maximum_experience == null ||
       !job_description ||
       !formattedHRs.length
     ) {
@@ -53,12 +49,10 @@ router.post("/add-position", async (req, res) => {
     }
 
     const newPosition = await ActivePosition.create({
-      job_id,
       position,
       skills: formattedSkills,
       department,
       vacancy,
-      manager,
       minimum_experience,
       maximum_experience,
       job_description,

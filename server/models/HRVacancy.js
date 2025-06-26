@@ -3,7 +3,7 @@ const sequelize = require("../config/database");
 
 const HRVacancy = sequelize.define("HRVacancy", {
   job_id: {
-    type: DataTypes.UUID,
+    type: DataTypes.INTEGER,
     primaryKey: true,
   },
   position: {
@@ -30,10 +30,6 @@ const HRVacancy = sequelize.define("HRVacancy", {
   },
   vacancy: {
     type: DataTypes.INTEGER,
-    allowNull: false,
-  },
-  manager: {
-    type: DataTypes.STRING,
     allowNull: false,
   },
   minimum_experience: {
@@ -63,5 +59,13 @@ const HRVacancy = sequelize.define("HRVacancy", {
     },
   },
 });
+
+HRVacancy.associate = (models) => {
+  HRVacancy.belongsTo(models.ActivePosition, {
+    foreignKey: "job_id",
+    targetKey: "job_id",
+  });
+};
+
 
 module.exports = HRVacancy;

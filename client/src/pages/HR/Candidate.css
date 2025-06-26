@@ -19,6 +19,7 @@
   border-radius: 5px;
   flex-wrap: wrap;
   color: white;
+  margin-bottom: 8px;
 }
 
 /* Body wrapper: Sidebar + Form content */
@@ -40,9 +41,21 @@
 /* Main form content on the right */
 .candidate-content {
   flex: 1;
-  padding: 24px;
   background-color: #f9f9f9;
   overflow-y: auto;
+}
+
+.candidate-list-card {
+  background-color: #fff;
+  border: 1px solid #0f0a0a;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+}
+
+.candidate-list-card:hover {
+  background-color: #e0f7fa;
+  border-color: #4dd0e1;
 }
 
 /* Form styling */
@@ -114,9 +127,9 @@ input[type="file"] {
     border-bottom: 1px solid #ccc;
   }
 
-  .candidate-content {
+  /* .candidate-content {
     padding: 16px;
-  }
+  } */
 
   .candidate-form {
     padding: 16px;
