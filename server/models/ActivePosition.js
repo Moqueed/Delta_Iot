@@ -100,6 +100,11 @@ ActivePosition.afterCreate(async (position) => {
       HRs: position.HRs,
     });
 
+     // 2. Extract HR emails (support comma-separated string)
+    const hrEmails = Array.isArray(position.HRs)
+      ? position.HRs
+      : position.HRs.split(",").map((email) => email.trim());
+
     // Use bulkCreate for performance
     const assignments = position.HRs.map((email) => ({
       job_id: position.job_id,

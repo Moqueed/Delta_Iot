@@ -22,6 +22,7 @@ import AssignToHrPage from "./pages/Admin/AssignToHrPage";
 import HRPage from "./pages/Admin/HRPage";
 import HRDataTrackerPage from "./pages/Admin/HRDataTrackerPage";
 import UploadPage from "./pages/HR/UploadPage";
+import Unauthorized from "./components/Unauthorized";
 
 function App() {
   return (
@@ -146,22 +147,6 @@ function App() {
         }
       />
       <Route
-        path="/admin-dashboard/add-candidate"
-        element={
-          <ProtectedRoute role="Admin">
-            <CandidateForm />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/admin-dashboard/active-list"
-        element={
-          <ProtectedRoute role="Admin">
-            <ActiveListPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
         path="/admin-dashboard/hr-list"
         element={
           <ProtectedRoute role="Admin">
@@ -195,6 +180,7 @@ function App() {
       />
 
       {/* Fallback route */}
+      <Route path="/unauthorized" element={<Unauthorized />} />
       <Route path="*" element={<LoginPage />} />
     </Routes>
   );

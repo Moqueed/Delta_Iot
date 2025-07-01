@@ -26,16 +26,6 @@ router.get("/by-email/:email", async (req, res) => {
 });
 
 
-// 📌 GET all HRVacancies
-router.get("/get-vacancies", async (req, res) => {
-  try {
-    const vacancies = await HRVacancy.findAll();
-    res.status(200).json(vacancies);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
 // 📌 GET a specific HRVacancy by job_id
 router.get("/get-vacancy/:job_id", async (req, res) => {
   try {

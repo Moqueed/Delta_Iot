@@ -10,9 +10,11 @@ const ProtectedRoute = ({ children, role }) => {
     return <Navigate to="/login" replace />;
   }
 
-   if (!userRole || userRole.toLowerCase() !== role.toLowerCase()) {
+  const rolesArray = Array.isArray(role) ? role.map(r => r.toLowerCase()) : [role.toLowerCase()];
+
+  if (!rolesArray.includes(userRole?.toLowerCase())) {
     message.error("Unauthorized access!");
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/unauthorized" replace />;
   }
 
   return children;

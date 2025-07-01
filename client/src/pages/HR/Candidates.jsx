@@ -77,23 +77,26 @@ const Candidate = () => {
     if (selectedFile) {
       setFile(selectedFile);
       message.success(`Selected file: ${selectedFile.name}`);
+    } else {
+      setFile(null);
     }
   };
 
   const handleCandidateClick = (candidate) => {
-  console.log("Selected candidate:", candidate);
-  setSelectedCandidate(candidate);
+    console.log("Selected candidate:", candidate);
+    message.info(`Selected: ${candidate.candidate_name}`);
+    setSelectedCandidate(candidate);
 
-  // Set form values
-  form.setFieldsValue({
-    ...candidate,
-    entry_date: candidate.entry_date ? dayjs(candidate.entry_date) : null,
-    status_date: candidate.status_date ? dayjs(candidate.status_date) : null,
-  });
+    // Set form values
+    form.setFieldsValue({
+      ...candidate,
+      entry_date: candidate.entry_date ? dayjs(candidate.entry_date) : null,
+      status_date: candidate.status_date ? dayjs(candidate.status_date) : null,
+    });
 
-  // Also set attachment (if resume uploaded previously)
-  setAttachmentUrl(candidate.attachments);
-};
+    // Also set attachment (if resume uploaded previously)
+    setAttachmentUrl(candidate.attachments);
+  };
 
   const handleCandidateSearchByEmail = async (emailToSearch) => {
     try {
@@ -135,7 +138,7 @@ const Candidate = () => {
       console.log("Search input is empty or invalid");
       return;
     }
-
+    message.info("Searching candidate...");
     console.log("Searching for:", search_input);
 
     const filters = {};
@@ -165,41 +168,46 @@ const Candidate = () => {
   const handleSubmit = async (values) => {
     setLoading(true);
     try {
-      let uploadedFilePath = attachmentUrl;
-      if (file) {
-        const email = values.candidate_email_id;
-        const response = await uploadResumeToAll(email, file);
-        uploadedFilePath = response.candidateResume;
-      }
       const candidateData = {
         ...values,
-        attachments: uploadedFilePath,
         entry_date: values.entry_date.format("YYYY-MM-DD"),
         status_date: values.status_date.format("YYYY-MM-DD"),
       };
 
+      const email = candidateData.candidate_email_id;
+
+      // Step 1: Upload resume first if file is selected
+      if (file) {
+        const response = await uploadResumeToAll(email, file);
+        if (response?.candidateResume) {
+          candidateData.attachments = response.candidateResume;
+          setAttachmentUrl(response.candidateResume);
+        }
+      }
+
+      // Step 2: Add or update candidate with attachments path
       if (isEditing) {
         await updateCandidate(id, candidateData);
         await updateActiveList(candidateData);
-        message.success("Candidate updated successfully!");
       } else {
-        await addCandidate(candidateData);
-        const result = await handleCandidateSearchByEmail(
-          candidateData.candidate_email_id
-        );
-        if (!result?.candidate?.id) {
-          throw new Error("candidate ID not found after adding candidate");
+        const result = await searchCandidateByEmail(email);
+        if (!result?.message?.includes("proceed")) {
+          throw new Error("Candidate already exists in system.");
         }
-        await addToActiveList({
-          ...candidateData,
-          candidate_id: result.candidate.id,
-        });
-        message.success("Candidate added successfully!");
+
+        await addCandidate(candidateData); // ✅ Now includes `attachments`
       }
+
+      message.success(
+        `Candidate ${isEditing ? "updated" : "added"} successfully!`
+      );
       navigate("/hr-dashboard/active-list");
     } catch (error) {
+      console.error("❌ Submission error:", error);
       message.error(
-        `Failed to ${isEditing ? "update" : "add"} candidate: ${error.message}`
+        `❌ Failed to ${isEditing ? "update" : "add"} candidate: ${
+          error.message
+        }`
       );
     } finally {
       setLoading(false);
@@ -214,8 +222,8 @@ const Candidate = () => {
     <div className="candidate-container">
       <div className="candidate-header">
         <div className="header-left">
-         <img src="/images/hrms-logo.jpg" alt="logo" className="logo" />
-            <DashboardHomeLink/>
+          <img src="/images/hrms-logo.jpg" alt="logo" className="logo" />
+          <DashboardHomeLink />
         </div>
 
         <h2>Candidates</h2>
@@ -241,11 +249,12 @@ const Candidate = () => {
           <div className="candidate-list">
             {candidateList.length > 0 ? (
               candidateList.map((candidate) => (
-                <div className="candidate-list-card"
-                 key={candidate.id}
-                 onClick={() => handleCandidateClick(candidate)}
-                 style={{cursor: "pointer"}}
-                 >
+                <div
+                  className="candidate-list-card"
+                  key={candidate.id}
+                  onClick={() => handleCandidateClick(candidate)}
+                  style={{ cursor: "pointer" }}
+                >
                   <p className="candidate-name">{candidate.candidate_name}</p>
                 </div>
               ))
@@ -369,18 +378,6 @@ const Candidate = () => {
                   <Input />
                 </Form.Item>
               </Col>
-
-              <Col span={8}>
-                <Form.Item name="band" label="Band">
-                  <Select>
-                    {["L0", "L1", "L2", "L3", "L4"].map((b) => (
-                      <Option key={b} value={b}>
-                        {b}
-                      </Option>
-                    ))}
-                  </Select>
-                </Form.Item>
-              </Col>
               <Col span={8}>
                 <Form.Item name="reference" label="Reference">
                   <Input />
@@ -456,11 +453,6 @@ const Candidate = () => {
                   <DatePicker style={{ width: "100%" }} />
                 </Form.Item>
               </Col>
-              <Col span={8}>
-                <Form.Item name="skills" label="Skills">
-                  <Input.TextArea placeholder="Enter skills" />
-                </Form.Item>
-              </Col>
 
               <Col span={8}>
                 <Form.Item name="experience" label="Experience (Years)">
@@ -509,18 +501,22 @@ const Candidate = () => {
               </Col>
 
               <Col xs={24}>
-                <Form.Item label="Resume / Attachment">
+                <Form.Item label="Upload Resume">
                   <input
                     type="file"
                     accept=".pdf,.doc,.docx"
                     onChange={handleFileChange}
                   />
+                </Form.Item>
+                <Form.Item label="Resume">
                   {attachmentUrl && (
                     <a
-                      href={attachmentUrl}
+                      href={`http://localhost:5000/api/uploads/${attachmentUrl
+                        .split("/")
+                        .pop()}`}
                       target="_blank"
-                      rel="noreferrer"
-                      style={{ marginLeft: "10px" }}
+                      rel="noopener noreferrer"
+                      onClick={() => message.info("Opening resume preview")}
                     >
                       View Resume
                     </a>

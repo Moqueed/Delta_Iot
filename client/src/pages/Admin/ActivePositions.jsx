@@ -9,6 +9,7 @@ import {
 import "./PositionForm.css";
 import { Link } from "react-router-dom";
 import { HomeOutlined, LogoutOutlined } from "@ant-design/icons";
+import DashboardHomeLink from "../../components/DashboardHomeLink";
 
 const { Option } = Select;
 
@@ -128,9 +129,7 @@ const PositionForm = () => {
       <div className="position-header">
         <div className="header-left">
           <img src="/images/hrms-logo.jpg" alt="logo" className="logo" />
-          <Link to="/admin-dashboard">
-            <HomeOutlined className="home-icon" />
-          </Link>
+          <DashboardHomeLink/>
         </div>
 
         <h2>Active Positions</h2>

@@ -77,7 +77,10 @@ const ActiveList = sequelize.define(
     },
 
     comments: { type: DataTypes.TEXT },
-    attachments: { type: DataTypes.STRING },
+    attachments: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
 
     profile_stage: {
       type: DataTypes.ENUM("open", "closed"),

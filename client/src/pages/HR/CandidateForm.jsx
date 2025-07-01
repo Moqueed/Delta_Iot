@@ -1,5 +1,14 @@
 import React, { useState } from "react";
-import { Form, Input, Select, DatePicker, Button, message, Row, Col } from "antd";
+import {
+  Form,
+  Input,
+  Select,
+  DatePicker,
+  Button,
+  message,
+  Row,
+  Col,
+} from "antd";
 import dayjs from "dayjs";
 import {
   deleteActiveCandidate,
@@ -11,6 +20,7 @@ import {
   updateBufferData,
 } from "../../api/activeList";
 import { updateRejectedCandidate } from "../../api/rejected";
+import { uploadResumeToAll } from "../../api/upload"; // Make sure this exists
 import "./CandidateForm.css";
 
 const { Option } = Select;
@@ -22,11 +32,44 @@ const CandidateForm = ({ candidate, onUpdate }) => {
   const [isRejected, setIsRejected] = useState(
     rejectedStatuses.includes(candidate.progress_status.toLowerCase())
   );
+  const [resumeUrl, setResumeUrl] = useState(candidate.attachments || "");
 
   const handleFormChange = (_, allValues) => {
     setIsRejected(
       rejectedStatuses.includes((allValues.progress_status || "").toLowerCase())
     );
+  };
+
+  const handleFileUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    try {
+      const email = form.getFieldValue("candidate_email_id");
+      if (!email) {
+        message.error("Please fill candidate email before uploading.");
+        return;
+      }
+
+      const res = await uploadResumeToAll(email, file);
+      if (res?.candidateResume) {
+        setResumeUrl(res.candidateResume);
+
+        await updateActiveList({
+          ...form.getFieldsValue(),
+          candidate_id: candidate.candidate_id,
+          attachments: res.candidateResume,
+        });
+
+        message.success("Resume uploaded and synced with Active List");
+        onUpdate();
+      } else {
+        message.error("Failed to upload resume");
+      }
+    } catch (error) {
+      console.error("Upload error:", error);
+      message.error("Error uploading resume");
+    }
   };
 
   const handleSubmit = async (values) => {
@@ -72,6 +115,7 @@ const CandidateForm = ({ candidate, onUpdate }) => {
         await updateActiveList({
           ...values,
           candidate_id: candidate.candidate_id,
+          attachments: resumeUrl,
         });
         message.success("Candidate updated successfully");
       }
@@ -278,6 +322,29 @@ const CandidateForm = ({ candidate, onUpdate }) => {
         <Col span={8}>
           <Form.Item name="status_date" label="Status Date">
             <DatePicker style={{ width: "100%" }} />
+          </Form.Item>
+        </Col>
+        <Col span={8}>
+          <Form.Item label="Resume / Attachment">
+            <input
+              type="file"
+              accept=".pdf,.doc,.docx"
+              onChange={handleFileUpload}
+            />
+            {resumeUrl && (
+              <div style={{ marginTop: 8 }}>
+                <a
+                  href={`http://localhost:5000${resumeUrl.replace(
+                    "/uploads",
+                    "/api/uploads"
+                  )}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  📄 View Resume
+                </a>
+              </div>
+            )}
           </Form.Item>
         </Col>
 

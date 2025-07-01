@@ -26,6 +26,8 @@ import {
 } from "../../api/approval";
 import "./ApprovalsPage.css";
 import { Link } from "react-router-dom";
+import DashboardHomeLink from "../../components/DashboardHomeLink";
+import { uploadResumeToAll } from "../../api/upload";
 
 const ApprovalsPage = () => {
   const [approvals, setApprovals] = useState([]);
@@ -63,14 +65,33 @@ const ApprovalsPage = () => {
     }));
   };
 
-  const handleFileChange = (id, file) => {
-    setFormStates((prev) => ({
-      ...prev,
-      [id]: {
-        ...prev[id],
-        attachments: file,
-      },
-    }));
+  const handleFileChange = async (id, file) => {
+    try {
+      const email = formStates[id]?.candidate_email_id;
+      if (!email) {
+        message.error("Candidate email is required before uploading.");
+        return;
+      }
+
+      const response = await uploadResumeToAll(email, file);
+      const resumeUrl = response?.candidateResume;
+
+      if (resumeUrl) {
+        setFormStates((prev) => ({
+          ...prev,
+          [id]: {
+            ...prev[id],
+            attachments: resumeUrl,
+          },
+        }));
+        message.success("Resume uploaded successfully");
+      } else {
+        message.error("Failed to upload resume");
+      }
+    } catch (error) {
+      console.error("Upload error:", error);
+      message.error("Error uploading resume");
+    }
   };
 
   const handleCandidateClick = (candidate) => {
@@ -212,9 +233,7 @@ const ApprovalsPage = () => {
       <div className="candidate-header">
         <div className="header-left">
           <img src="/images/hrms-logo.jpg" alt="logo" className="logo" />
-          <Link to="/admin-dashboard">
-            <HomeOutlined className="home-icon" />
-          </Link>
+          <DashboardHomeLink />
         </div>
 
         <h2>Approvals</h2>
@@ -274,7 +293,11 @@ const ApprovalsPage = () => {
                         <Select
                           value={formData[field.key]}
                           onChange={(value) =>
-                            handleFieldChange(candidateToShow.id, field.key, value)
+                            handleFieldChange(
+                              candidateToShow.id,
+                              field.key,
+                              value
+                            )
                           }
                         >
                           {field.options.map((opt) => (
@@ -285,31 +308,33 @@ const ApprovalsPage = () => {
                         </Select>
                       ) : field.type === "upload" ? (
                         <>
-                          <Upload
-                            beforeUpload={() => false}
-                            showUploadList={false}
-                            onChange={({ file }) =>
-                              handleFileChange(candidateToShow.id, file)
-                            }
-                          >
-                            <Button icon={<UploadOutlined />}>Upload File</Button>
-                          </Upload>
-                          {formData.attachments &&
-                            (typeof formData.attachments === "string" ? (
-                              <div style={{ marginTop: 8 }}>
-                                <a
-                                  href={formData.attachments}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                >
-                                  📄 {formData.attachments}
-                                </a>
-                              </div>
-                            ) : (
-                              <div style={{ marginTop: 8 }}>
-                                📄 <strong>{formData.attachments.name}</strong>
-                              </div>
-                            ))}
+                          <input
+                            type="file"
+                            accept=".pdf,.doc,.docx"
+                            onChange={(e) => {
+                              const selectedFile = e.target.files[0];
+                              if (selectedFile) {
+                                handleFileChange(
+                                  candidateToShow.id,
+                                  selectedFile
+                                );
+                              }
+                            }}
+                          />
+                          {formData.attachments && (
+                            <div style={{ marginTop: 8 }}>
+                              <a
+                                href={`http://localhost:5000${formData.attachments.replace(
+                                  "/uploads",
+                                  "/api/uploads"
+                                )}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                              >
+                                📄 View Resume
+                              </a>
+                            </div>
+                          )}
                         </>
                       ) : (
                         <Input

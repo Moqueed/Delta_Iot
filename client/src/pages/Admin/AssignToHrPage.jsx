@@ -13,6 +13,7 @@ import {
 import "./AssignToHrPage.css";
 import { Link } from "react-router-dom";
 import { useEffect } from "react";
+import DashboardHomeLink from "../../components/DashboardHomeLink";
 const { Option } = Select;
 
 const AssignToHrPage = () => {
@@ -108,9 +109,7 @@ const AssignToHrPage = () => {
         <div className="assign-header">
           <div className="header-left">
             <img src="/images/hrms-logo.jpg" alt="logo" className="logo" />
-            <Link to="/admin-dashboard">
-              <HomeOutlined className="home-icon" />
-            </Link>
+            <DashboardHomeLink/>
           </div>
 
           <div><h2>Assign To HR</h2></div>

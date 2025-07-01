@@ -1,16 +1,6 @@
 import axiosInstance from ".";
 
 
-export const getAllVacancies = async () => {
-  try {
-    const response = await axiosInstance.get("/api/hrvacancies/get-vacancies");
-    return response.data;
-  } catch (error) {
-    console.error("Error fetching vacancies:", error);
-    throw error;
-  }
-};
-
 export const getVacancyById = async (job_id) => {
   try {
     const response = await axiosInstance.get(`/api/hrvacancies/get-vacancy/${job_id}`);

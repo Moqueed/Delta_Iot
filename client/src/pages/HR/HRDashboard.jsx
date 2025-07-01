@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Card, Row, Col, Typography, Button, message } from "antd";
 import {
   FileOutlined,
@@ -7,18 +7,28 @@ import {
   UserOutlined,
   AppstoreAddOutlined,
   FileTextOutlined,
-  HomeOutlined,
   LogoutOutlined,
 } from "@ant-design/icons";
-import "./HRDashboard.css"; // CSS file
+import "./HRDashboard.css";
 import axiosInstance from "../../api";
 
 const { Title } = Typography;
 
 const HRDashboard = () => {
   const [hrName, setHrName] = useState("");
+  const navigate = useNavigate();
   const hrEmail = localStorage.getItem("userEmail");
 
+  // ✅ Redirect if not HR
+  useEffect(() => {
+    const role = localStorage.getItem("role");
+    if (role !== "HR") {
+      message.error("Unauthorized access!");
+      navigate("/login", { replace: true });
+    }
+  }, [navigate]);
+
+  // ✅ Fetch HR name
   useEffect(() => {
     const fetchHRDetails = async () => {
       try {
@@ -35,46 +45,30 @@ const HRDashboard = () => {
     }
   }, [hrEmail]);
 
-  const navigate = useNavigate();
-
+  // ✅ Logout using React Router
   const handleLogout = () => {
     localStorage.clear();
     message.success("Logout successfully");
-    window.location.href = "/login";
+    navigate("/login", { replace: true });
   };
 
+  // ✅ Card sections
   const sections = [
-    {
-      key: "vacancies",
-      icon: <FileOutlined />,
-      title: "Vacancies",
-      borderColor: "#FFD700",
-    },
-    {
-      key: "total-data",
-      icon: <DatabaseOutlined />,
-      title: "Total Data",
-      borderColor: "#32CD32",
-    },
-    {
-      key: "active-list",
-      icon: <UserOutlined />,
-      title: "Active List",
-      borderColor: "#1E90FF",
-    },
-    {
-      key: "add-candidate",
-      icon: <AppstoreAddOutlined />,
-      title: "Add New Candidate",
-      borderColor: "#FF4500",
-    },
-    {
-      key: "upload",
-      icon: <FileTextOutlined />,
-      title: "Upload",
-      borderColor: "#32CD32",
-    },
+    { key: "vacancies", icon: <FileOutlined />, title: "Vacancies", borderColor: "#FFD700" },
+    { key: "total-data", icon: <DatabaseOutlined />, title: "Total Data", borderColor: "#32CD32" },
+    { key: "active-list", icon: <UserOutlined />, title: "Active List", borderColor: "#1E90FF" },
+    { key: "add-candidate", icon: <AppstoreAddOutlined />, title: "Add New Candidate", borderColor: "#FF4500" },
+    { key: "upload", icon: <FileTextOutlined />, title: "Upload", borderColor: "#32CD32" },
   ];
+
+  // ✅ Route mapping
+  const routeMap = {
+    "vacancies": "/hr-dashboard/vacancies",
+    "total-data": "/total-data",
+    "active-list": "/hr-dashboard/active-list",
+    "add-candidate": "/hr-dashboard/add-candidate",
+    "upload": "/hr-dashboard/upload",
+  };
 
   return (
     <div className="hr-dashboard-container">
@@ -83,9 +77,7 @@ const HRDashboard = () => {
         <div className="header-left">
           <img src="/images/hrms-logo.jpg" alt="logo" className="logo" />
         </div>
-
         <h2>HR Dashboard</h2>
-
         <div className="header-right">
           <span className="welcome-text">Welcome: {hrName}</span>
           <Button
@@ -100,11 +92,6 @@ const HRDashboard = () => {
           </Button>
         </div>
       </div>
-
-      {/* Title */}
-      {/* <Title level={2} className="dashboard-title">
-        HR's CREDENTIALS
-      </Title> */}
 
       {/* Cards */}
       <div className="hr-dashboard-body">
@@ -124,11 +111,7 @@ const HRDashboard = () => {
                 className="hr-dashboard-card"
                 style={{ border: `8px solid ${section.borderColor}` }}
                 onClick={() =>
-                  navigate(
-                    section.key === "total-data"
-                      ? "/total-data"
-                      : `/hr-dashboard/${section.key}`
-                  )
+                  navigate(routeMap[section.key] || "/unauthorized")
                 }
                 onMouseEnter={(e) => {
                   e.currentTarget.style.transform = "scale(1.05)";

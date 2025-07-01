@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { deleteVacancy, getAllVacancies } from "../../api/hrVacancy";
+import { deleteVacancy } from "../../api/hrVacancy";
 import { Button, message, Popconfirm, Spin, Table } from "antd";
 import { HomeOutlined, LogoutOutlined } from "@ant-design/icons";
 import "./HRVacancy.css";
@@ -14,18 +14,30 @@ const HRVacancy = () => {
   const navigate = useNavigate();
 
   const fetchVacancies = async () => {
-    try {
-      setLoading(true);
-      const email = localStorage.getItem("email");
-      const res = await axiosInstance.get(`/api/hrvacancies/by-email/${email}`);
-      const data = res.data;
-      setVacancies(data);
-    } catch (error) {
-      message.error("Failed to load vacancies");
-    } finally {
-      setLoading(false);
+  try {
+    setLoading(true);
+
+    const email = localStorage.getItem("userEmail");
+    console.log("📧 Fetched email from localStorage:", email);
+
+    if (!email) {
+      message.error("No email found in localStorage.");
+      return;
     }
-  };
+
+    const res = await axiosInstance.get(`/api/hrvacancies/by-email/${email}`);
+    const data = res.data;
+    console.log("✅ Vacancies:", data);
+
+    setVacancies(data);
+  } catch (error) {
+    console.error("❌ Error fetching vacancies:", error);
+    message.error("Failed to load vacancies");
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   useEffect(() => {
     fetchVacancies();

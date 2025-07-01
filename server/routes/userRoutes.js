@@ -8,7 +8,7 @@ const jwt = require("jsonwebtoken");
 const allowedRoles = ["Admin", "HR"];
 
 // 🎯 Register User (Admin or HR)
-router.post("/register", async (req, res) => {
+router.post("/register",  async (req, res) => {
   const { name, email, password, role } = req.body;
 
   try {
@@ -53,16 +53,21 @@ router.post("/register", async (req, res) => {
 
 // 🔑 Login User
 router.post("/login", async (req, res) => {
-  const { email, password } = req.body;
+  const { email, password, role } = req.body;
 
   try {
     // 🔍 Check if user exists
     const user = await User.findOne({ where: { email } });
     if (!user) return res.status(404).json({ message: "User not found" });
+    
+    if (user.role.toLowerCase() !== role.toLowerCase()) {
+  return res.status(403).json({ message: "Forbidden" });
+}
 
     // 🔒 Validate password
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(400).json({ message: "Invalid password" });
+    
 
     // 🎟️ Generate JWT token with role
     const token = jwt.sign(

@@ -3,8 +3,8 @@ import { useNavigate, Link } from "react-router-dom";
 import { Form, Button, Input, Select, Typography, message, Avatar } from "antd";
 import { LoginUser } from "../../api/users";
 import { jwtDecode } from "jwt-decode";
-import "./LoginPage.css";
 import { UserOutlined } from "@ant-design/icons";
+import "./LoginPage.css";
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -15,24 +15,34 @@ const LoginPage = () => {
 
   const handleLogin = async (values) => {
     setLoading(true);
+
     try {
       const response = await LoginUser(values);
+
       if (response.token) {
         const decoded = jwtDecode(response.token);
 
+        // Store essential user info
         localStorage.setItem("token", response.token);
-        localStorage.setItem("role", values.role); // required by ProtectedRoute
-        localStorage.setItem("userEmail", values.email); // used in HRDashboard
+        localStorage.setItem("role", decoded.role || values.role); // from JWT
+        localStorage.setItem("userEmail", decoded.email || values.email); // from JWT
 
-        message.success(`Welcome, ${values.role}!`);
+        message.success(`Welcome, ${decoded.role || values.role}!`);
 
-        const userRole = values.role.toLowerCase();
-        navigate(userRole === "admin" ? "/admin-dashboard" : "/hr-dashboard", {
-          replace: true,
-        });
+        // Navigate based on role
+        const role = (decoded.role || values.role).toLowerCase();
+        if (role === "admin") {
+          navigate("/admin-dashboard", { replace: true });
+        } else if (role === "hr") {
+          navigate("/hr-dashboard", { replace: true });
+        } else {
+          message.error("Invalid role");
+        }
       }
     } catch (err) {
+      console.error("❌ Login failed:", err);
       message.error("Invalid email or password. Please try again.");
+      navigate("/unauthorized");
     } finally {
       setLoading(false);
     }
@@ -44,7 +54,7 @@ const LoginPage = () => {
         <div className="login-box">
           <Avatar size={64} icon={<UserOutlined />} style={{ marginBottom: 10 }} />
           <Title level={3}>HRMS</Title>
-          <Title level={4}>Sign In</Title>
+          <Title level={4}>Log In</Title>
 
           <Form layout="vertical" onFinish={handleLogin}>
             <Form.Item

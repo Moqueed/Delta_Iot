@@ -77,7 +77,7 @@ const Candidate = sequelize.define(
     reference: { type: DataTypes.STRING },
     notice_period: { type: DataTypes.STRING },
     comments: { type: DataTypes.TEXT },
-    attachments: { type: DataTypes.STRING },
+    attachments: { type: DataTypes.STRING, allowNull: true },
   },
   { 
     tableName: "candidates",

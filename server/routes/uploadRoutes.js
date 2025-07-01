@@ -22,7 +22,7 @@ router.post("/upload/:email", upload.single("resume"), async (req, res) => {
       return res.status(400).json({ message: "No file uploaded" });
     }
 
-    const filePath = `/uploads/${file.filename}`;
+    const filePath = req.file ? `${req.file.filename}`: null;
 
     // Update Candidate record
     let candidate = await Candidate.findOne({
@@ -44,6 +44,7 @@ router.post("/upload/:email", upload.single("resume"), async (req, res) => {
       await activeEntry.save();
     } else {
       activeEntry = await ActiveList.create({
+         candidate_id: candidate.id,
         candidate_email_id: candidate.candidate_email_id,
         HR_name: candidate.HR_name,
         HR_mail: candidate.HR_mail,
