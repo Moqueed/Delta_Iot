@@ -6,12 +6,14 @@ import { HomeOutlined, LogoutOutlined } from "@ant-design/icons";
 import "./HRVacancy.css";
 import DashboardHomeLink from "../../components/DashboardHomeLink";
 import axiosInstance from "../../api";
+import { useHR } from "../../components/HRContext";
 
 const HRVacancy = () => {
   const [vacancies, setVacancies] = useState([]);
   const [loading, setLoading] = useState(true);
   // const [vacanciesList, setVacanciesList] = useState([]);
   const navigate = useNavigate();
+  const { hrName } = useHR();
 
   const fetchVacancies = async () => {
   try {
@@ -146,7 +148,7 @@ const HRVacancy = () => {
           <h2 className="header-title">HR Vacancies</h2>
         </div>
         <div className="header-right">
-          <span className="welcome-text">Welcome: Moqueed Ahmed</span>
+           <span className="welcome-text">Welcome: {hrName}</span>
           <Button
             icon={<LogoutOutlined />}
             onClick={handleLogout}

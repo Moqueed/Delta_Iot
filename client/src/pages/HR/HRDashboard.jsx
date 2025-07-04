@@ -20,30 +20,30 @@ const HRDashboard = () => {
   const hrEmail = localStorage.getItem("userEmail");
 
   // ✅ Redirect if not HR
-  useEffect(() => {
-    const role = localStorage.getItem("role");
-    if (role !== "HR") {
-      message.error("Unauthorized access!");
-      navigate("/login", { replace: true });
-    }
-  }, [navigate]);
+ useEffect(() => {
+  if (!hrEmail) {
+    message.error("User email not found. Please log in again.");
+    navigate("/login", { replace: true });
+    return;
+  }
 
-  // ✅ Fetch HR name
-  useEffect(() => {
-    const fetchHRDetails = async () => {
-      try {
-        const response = await axiosInstance.get(`/api/hr/email/${hrEmail}`);
-        const data = response.data;
-        setHrName(data.name || "HR");
-      } catch (err) {
-        console.error("Failed to fetch HR details", err);
-        setHrName("HR");
-      }
-    };
-    if (hrEmail) {
-      fetchHRDetails();
+  const fetchHRDetails = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axiosInstance.get(`/api/hr/email/${hrEmail}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setHrName(response.data.name || "HR");
+    } catch (err) {
+      console.error("Failed to fetch HR details", err);
+      setHrName("HR");
     }
-  }, [hrEmail]);
+  };
+
+  fetchHRDetails();
+}, [hrEmail, navigate]);
 
   // ✅ Logout using React Router
   const handleLogout = () => {

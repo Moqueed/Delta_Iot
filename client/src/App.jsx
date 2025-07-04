@@ -23,9 +23,13 @@ import HRPage from "./pages/Admin/HRPage";
 import HRDataTrackerPage from "./pages/Admin/HRDataTrackerPage";
 import UploadPage from "./pages/HR/UploadPage";
 import Unauthorized from "./components/Unauthorized";
+import { HRProvider } from "./components/HRContext";
+
+
 
 function App() {
   return (
+    <HRProvider>
     <Routes>
       {/* Public routes */}
       <Route path="/register" element={<RegisterPage />} />
@@ -183,6 +187,7 @@ function App() {
       <Route path="/unauthorized" element={<Unauthorized />} />
       <Route path="*" element={<LoginPage />} />
     </Routes>
+    </HRProvider>
   );
 }
 

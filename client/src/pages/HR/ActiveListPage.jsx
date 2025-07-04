@@ -7,21 +7,32 @@ import "./CandidateForm.css";
 import { HomeOutlined, LogoutOutlined } from "@ant-design/icons";
 import { Link } from "react-router-dom";
 import DashboardHomeLink from "../../components/DashboardHomeLink";
+import { useHR } from "../../components/HRContext";
 
 const ActiveList = () => {
   const [loading, setLoading] = useState(true);
   const [candidates, setCandidates] = useState([]);
   const [selectedCandidate, setSelectedCandidate] = useState(null);
+  const { hrName } = useHR();
 
   const fetchCandidates = async () => {
+    setLoading(true);
     try {
-      const response = await axiosInstance.get("/api/activelist/fetch");
+      const hrEmail = localStorage.getItem("userEmail");
+      if (!hrEmail) {
+        message.error("HR email not found in localStorage.");
+        return;
+      }
+
+      const response = await axiosInstance.get(
+        `/api/activelist/by-hr/${hrEmail}`
+      );
       setCandidates(response.data);
       if (response.data.length > 0) {
         setSelectedCandidate(response.data[0]);
       }
     } catch (error) {
-      console.error("Error fetching candidates:", error);
+      console.error("Error fetching HR-specific candidates:", error);
       message.error("Failed to fetch candidates.");
     } finally {
       setLoading(false);
@@ -47,13 +58,13 @@ const ActiveList = () => {
       <div className="active-list-header">
         <div className="header-left">
           <img src="/images/hrms-logo.jpg" alt="logo" className="logo" />
-          <DashboardHomeLink/>
+          <DashboardHomeLink />
         </div>
 
         <h2>Active List</h2>
 
         <div className="header-right">
-          <span className="welcome-text">Welcome: Moqueed Ahmed</span>
+          <span className="welcome-text">Welcome: {hrName}</span>
           <Button
             icon={<LogoutOutlined />}
             onClick={handleLogout}

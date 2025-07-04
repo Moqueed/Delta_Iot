@@ -44,20 +44,31 @@ export const uploadResumeToAssigned = async (email, file) => {
   }
 };
 
-//Fetch Resume File (Download or Display)
-export const fetchResumeFile = async (filename) => {
-  try {
-    const response = await axiosInstance.get(
-      `/api/uploads/resume/${filename}`,
-      {
-        responseType: "blob", // Important for downloading/displaying files
-      }
-    );
 
-    return response.data;
+// ✅ Get all uploaded resumes by an individual HR
+export const getUploadsByHR = async (hrEmail) => {
+  try {
+    const response = await axiosInstance.get(`/api/uploads/list`, {
+      params: { hr_email: hrEmail },
+    });
+    return response.data.files; // array of uploaded resume records
   } catch (error) {
-    console.error("❌ Error fetching resume file:", error);
-    throw error.response?.data || { message: "File not found" };
+    console.error("❌ Error fetching HR uploads:", error);
+    throw error.response?.data || { message: "Could not fetch uploads" };
   }
 };
+
+
+//Fetch Resume File (Download or Display) In upload.js
+export const fetchResumeFile = async (filename) => {
+  try {
+    const res = await axiosInstance.get(`/api/uploads/file/${filename}`, {
+      responseType: "blob",
+    });
+    return res.data;
+  } catch (err) {
+    throw new Error("File download failed");
+  }
+};
+
 

@@ -18,6 +18,7 @@ import {
   UpdateAboutToJoin,
   updateNewlyJoined,
   updateBufferData,
+  notifyManager,
 } from "../../api/activeList";
 import { updateRejectedCandidate } from "../../api/rejected";
 import { uploadResumeToAll } from "../../api/upload"; // Make sure this exists
@@ -72,17 +73,58 @@ const CandidateForm = ({ candidate, onUpdate }) => {
     }
   };
 
+  const handleYetToShare = async () => {
+    try {
+      const status = "Yet to Share";
+      await updateActiveList({
+        ...candidate,
+        progress_status: status,
+      });
+
+      await UpdateTotalMasterData(candidate.candidate_id, status);
+      await notifyManager(candidate.candidate_id, status);
+
+      message.success(
+        "Candidate marked as 'Yet to Share' and Manager notified"
+      );
+      onUpdate();
+    } catch (error) {
+      console.error("Error notifying manager:", error);
+      message.error("Failed to notify manager");
+    }
+  };
+
+  const statusMap = {
+    "application received": "Application Received",
+    "phone screening": "Phone Screening",
+    "l1 interview": "L1 Interview",
+    "l2 interview": "L2 Interview",
+    "shared with client": "Shared with Client",
+    "offer released": "Offer Released",
+    "final discussion": "Final Discussion",
+    "hr round cleared": "HR Round Cleared",
+    joined: "Joined",
+    hold: "Hold",
+    buffer: "Buffer",
+  };
+
   const handleSubmit = async (values) => {
     try {
-      const status = values.progress_status.toLowerCase();
+      const status = values.progress_status?.toLowerCase().trim();
+      const originalStatus = statusMap[status]; // Get original casing
+
+      if (!originalStatus) {
+        message.error("Invalid progress status");
+        return;
+      }
 
       if (rejectedStatuses.includes(status)) {
         await updateRejectedCandidate(
           candidate.id,
-          values.progress_status,
+          originalStatus,
           values.rejection_reason || "Moved to rejected from Active List"
         );
-        await deleteActiveCandidate(candidate.candidate.id);
+        await deleteActiveCandidate(candidate.id);
         message.success(
           "Candidate moved to rejected and removed from Active List"
         );
@@ -91,29 +133,34 @@ const CandidateForm = ({ candidate, onUpdate }) => {
           "application received",
           "phone screening",
           "l1 interview",
-          "yet to share",
           "l2 interview",
           "shared with client",
         ].includes(status)
       ) {
-        await UpdateTotalMasterData(candidate.id, status);
+        await UpdateTotalMasterData(candidate.id, originalStatus);
+
+        if (status === "yet to share") {
+          await notifyManager(candidate.candidate_id, originalStatus);
+        }
+
         message.success("Candidate moved to Total Master Data");
       } else if (
         ["offer released", "final discussion", "hr round cleared"].includes(
           status
         )
       ) {
-        await UpdateAboutToJoin(candidate.id, status);
+        await UpdateAboutToJoin(candidate.id, originalStatus);
         message.success("Candidate moved to About To Join");
-      } else if (["joined"].includes(status)) {
-        await updateNewlyJoined(candidate.id, status);
+      } else if (status === "joined") {
+        await updateNewlyJoined(candidate.id, originalStatus);
         message.success("Candidate moved to Newly Joined");
       } else if (["hold", "buffer"].includes(status)) {
-        await updateBufferData(candidate.id, status);
+        await updateBufferData(candidate.id, originalStatus);
         message.success("Candidate moved to Buffer Data");
       } else {
         await updateActiveList({
           ...values,
+          progress_status: originalStatus,
           candidate_id: candidate.candidate_id,
           attachments: resumeUrl,
         });
@@ -384,6 +431,18 @@ const CandidateForm = ({ candidate, onUpdate }) => {
               className="review-btn"
             >
               Request Review
+            </Button>
+            <Button
+              type="primary"
+              onClick={handleYetToShare}
+              className={`notify-manager-button ${
+                form.getFieldValue("progress_status")?.toLowerCase().trim() ===
+                "yet to share"
+                  ? "active"
+                  : ""
+              }`}
+            >
+              Notify Manager
             </Button>
           </Form.Item>
         </Col>

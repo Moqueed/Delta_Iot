@@ -42,7 +42,6 @@ const LoginPage = () => {
     } catch (err) {
       console.error("❌ Login failed:", err);
       message.error("Invalid email or password. Please try again.");
-      navigate("/unauthorized");
     } finally {
       setLoading(false);
     }

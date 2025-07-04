@@ -15,7 +15,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import dayjs from "dayjs";
 import {
   addCandidate,
-  getCandidates,
+  getCandidatesByHR,
   searchCandidateByEmail,
   updateCandidate,
 } from "../../api/candidates";
@@ -24,6 +24,7 @@ import { uploadResumeToAll } from "../../api/upload";
 import "./Candidate.css";
 import { HomeOutlined, LogoutOutlined } from "@ant-design/icons";
 import DashboardHomeLink from "../../components/DashboardHomeLink";
+import { useHR } from "../../components/HRContext";
 
 const { Option } = Select;
 
@@ -39,12 +40,14 @@ const Candidate = () => {
   const [candidateList, setCandidateList] = useState([]);
   const [selectedCandidate, setSelectedCandidate] = useState(null);
   const navigate = useNavigate();
+  const { hrName } = useHR();
 
   useEffect(() => {
     const fetchCandidate = async () => {
       setLoading(true);
       try {
-        const allCandidates = await getCandidates();
+        const email = localStorage.getItem("userEmail"); // ✅ Ensure this is set during login
+        const allCandidates = await getCandidatesByHR(email);
         setCandidateList(allCandidates);
 
         if (id) {
@@ -195,7 +198,7 @@ const Candidate = () => {
           throw new Error("Candidate already exists in system.");
         }
 
-        await addCandidate(candidateData); // ✅ Now includes `attachments`
+        await addCandidate(candidateData); // ✅ Now includes attachments
       }
 
       message.success(
@@ -229,7 +232,7 @@ const Candidate = () => {
         <h2>Candidates</h2>
 
         <div className="header-right">
-          <span className="welcome-text">Welcome: Moqueed Ahmed</span>
+         <span className="welcome-text">Welcome: {hrName}</span>
           <Button
             icon={<LogoutOutlined />}
             onClick={handleLogout}
@@ -508,20 +511,20 @@ const Candidate = () => {
                     onChange={handleFileChange}
                   />
                 </Form.Item>
-                <Form.Item label="Resume">
-                  {attachmentUrl && (
+
+                {attachmentUrl && (
+                  <Form.Item label="Resume Preview">
                     <a
-                      href={`http://localhost:5000/api/uploads/${attachmentUrl
-                        .split("/")
-                        .pop()}`}
+                      href={`http://localhost:5000/api/uploads/${attachmentUrl}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       onClick={() => message.info("Opening resume preview")}
+                      style={{ display: "inline-block", marginTop: 4 }}
                     >
-                      View Resume
+                      📄 View Resume
                     </a>
-                  )}
-                </Form.Item>
+                  </Form.Item>
+                )}
               </Col>
 
               <Col xs={24}>

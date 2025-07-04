@@ -9,6 +9,7 @@ const ActiveList = require("../models/ActiveList");
 const Approval = require("../models/Approval");
 const AssignToHR = require("../models/AssignToHR");
 const AssignedCandidate = require("../models/AssignedCandidate");
+const Upload = require("../models/Upload");
 
 const router = express.Router();
 
@@ -22,7 +23,7 @@ router.post("/upload/:email", upload.single("resume"), async (req, res) => {
       return res.status(400).json({ message: "No file uploaded" });
     }
 
-    const filePath = req.file ? `${req.file.filename}`: null;
+    const filePath = req.file ? `${req.file.filename}` : null;
 
     // Update Candidate record
     let candidate = await Candidate.findOne({
@@ -31,6 +32,11 @@ router.post("/upload/:email", upload.single("resume"), async (req, res) => {
     if (!candidate) {
       return res.status(404).json({ message: "Candidate not found" });
     }
+    await Upload.create({
+      filename: file.filename,
+      uploaded_by: candidate.HR_mail, // or req.user.email if you're using auth
+    });
+
     candidate.attachments = filePath;
     await candidate.save();
     console.log("Candidate result:", candidate);
@@ -44,7 +50,7 @@ router.post("/upload/:email", upload.single("resume"), async (req, res) => {
       await activeEntry.save();
     } else {
       activeEntry = await ActiveList.create({
-         candidate_id: candidate.id,
+        candidate_id: candidate.id,
         candidate_email_id: candidate.candidate_email_id,
         HR_name: candidate.HR_name,
         HR_mail: candidate.HR_mail,
@@ -182,16 +188,45 @@ router.get("/resume/:filename", (req, res) => {
   });
 });
 
-// List all uploaded files
-router.get("/list", (req, res) => {
-  fs.readdir(uploadsFolder, (err, files) => {
-    if (err) {
-      console.error("Error reading uploads folder:", err);
-      return res.status(500).json({ message: "Unable to list files" });
+// routes/uploadRoutes.js
+router.get("/list", async (req, res) => {
+  try {
+    const hrEmail = req.query.hr_email;
+
+    if (!hrEmail || typeof hrEmail !== "string") {
+      return res.status(400).json({ message: "Valid HR email is required" });
     }
-    res.json({ files }); // ← sends array of filenames
-  });
+
+    const files = await Upload.findAll({
+      where: { uploaded_by: hrEmail.trim().toLowerCase() },
+      order: [["createdAt", "DESC"]],
+    });
+
+    res.status(200).json({ files });
+  } catch (error) {
+    console.error("❌ Error fetching uploads:", error.message);
+    res.status(500).json({ message: "Server error while fetching uploads" });
+  }
 });
+
+// ✅ Serve uploaded file by filename
+router.get("/file/:filename", (req, res) => {
+  try {
+    const filename = req.params.filename;
+    const filePath = path.join(__dirname, "../uploads", filename);
+    console.log("📥 Requested file:", req.params.filename);
+
+    if (!fs.existsSync(filePath)) {
+      return res.status(404).json({ message: "File not found" });
+    }
+
+    res.sendFile(filePath);
+  } catch (err) {
+    console.error("❌ Error sending file:", err);
+    res.status(500).json({ message: "Server error while sending file" });
+  }
+});
+
 
 
 module.exports = router;

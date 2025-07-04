@@ -12,6 +12,7 @@ const {
   BufferData,
 } = require("../models/TotalData");
 const sequelize = require("../config/database");
+const { removeCandidateFromAllExcept } = require("../utils/dataCleaner");
 
 // Mail setup
 const transporter = nodemailer.createTransport({
@@ -99,14 +100,18 @@ router.post("/add-active-list", async (req, res) => {
   }
 });
 
-//fetch all activelist candidates
-router.get("/fetch", async (req, res) => {
+//for unique HR
+router.get("/by-hr/:email", async (req, res) => {
+  const hrEmail = req.params.email;
   try {
-    const candidates = await ActiveList.findAll();
+    const candidates = await ActiveList.findAll({
+      where: { HR_mail: hrEmail },
+    });
+
     res.status(200).json(candidates);
   } catch (error) {
-    console.error(" Error Fetching active list:", error);
-    res.status(500).json({ error: "Failed to fetch active list" });
+    console.error("Error fetching HR-specific Active List:", error);
+    res.status(500).json({ message: "Server error" });
   }
 });
 
@@ -202,7 +207,6 @@ router.put("/request-review/:email", async (req, res) => {
     const email = req.params.email;
 
     console.log(`Requesting review for: ${email}`);
-    
 
     const candidate = await Candidate.findOne({
       where: { candidate_email_id: email },
@@ -223,7 +227,7 @@ router.put("/request-review/:email", async (req, res) => {
       contact_number: candidate.contact_number,
       position: candidate.position,
       department: candidate.department,
-     progress_status: activeListEntry.progress_status,
+      progress_status: activeListEntry.progress_status,
       requested_by,
       approval_status: "Pending",
       entry_date: new Date(),
@@ -265,102 +269,13 @@ router.put("/request-review/:email", async (req, res) => {
   }
 });
 
-
-//   try {
-//     const { approval_status } = req.body;
-
-//     const approval = await Approval.findOne({
-//       where: { candidate_email_id: req.params.email },
-//     });
-
-//     if (!approval) {
-//       return res.status(404).json({ error: "Approval entry not found" });
-//     }
-
-//     // Update approval status
-//     approval.approval_status = approval_status;
-//     approval.status_date = new Date();
-//     await approval.save();
-
-//     // If approved, update ActiveList progress_status
-//     if (approval_status === "Approved") {
-//       const activeEntry = await ActiveList.findOne({
-//         where: { candidate_email_id: req.params.email },
-//       });
-
-//       if (activeEntry) {
-//         activeEntry.progress_status = approval.progress_status; // requested status
-//         await activeEntry.save();
-//       }
-//     }
-
-//     // Notify HR via email
-//     const hrMailOptions = {
-//       from: process.env.EMAIL_USER,
-//       to: approval.HR_mail,
-//       subject: `Approval ${approval_status} - ${approval.candidate_name}`,
-//       text: `Dear ${approval.HR_name},
-
-// Your review request for candidate ${
-//         approval.candidate_name
-//       } has been ${approval_status.toLowerCase()} by the Admin.
-
-// Requested Status: ${approval.progress_status}
-
-// Regards,
-// Admin Team`,
-//     };
-
-//     await transporter.sendMail(hrMailOptions);
-
-//     res.status(200).json({ message: `Candidate ${approval_status}` });
-//   } catch (error) {
-//     console.error("❌ Error during approval review:", error);
-//     res.status(500).json({ error: "Internal server error" });
-//   }
-// });
-
-// ✅ Admin approves/rejects
-// router.put("/review-status/:email", async (req, res) => {
-//   try {
-//     const { approval_status } = req.body;
-//     const approvalRequest = await Approval.findOne({ where: { candidate_email_id: req.params.email, approval_status: "Pending" } });
-
-//     if (!approvalRequest) return res.status(404).json({ error: "No pending review found" });
-
-//     if (approval_status === "Approved") {
-//       await Candidate.update({ progress_status: approvalRequest.requested_progress_status }, { where: { candidate_email_id: req.params.email } });
-//       await ActiveList.update({ progress_status: approvalRequest.requested_progress_status }, { where: { candidate_email_id: req.params.email } });
-//     } else if (approval_status === "Rejected") {
-//       await Rejected.create({ ...approvalRequest.dataValues });
-//       await ActiveList.destroy({ where: { candidate_email_id: req.params.email } });
-//     }
-
-//     await approvalRequest.update({ approval_status });
-
-//     // ✅ Send mail to HR
-//     const mailOptions = {
-//       from: process.env.EMAIL_ADMIN,
-//       to: approvalRequest.HR_mail,
-//       subject: `Candidate Review Status - ${approvalRequest.candidate_name}`,
-//       text: `The candidate ${approvalRequest.candidate_name} has been ${approval_status}.`,
-//     };
-
-//     await transporter.sendMail(mailOptions);
-
-//     res.status(200).json({ message: `Candidate ${approval_status}` });
-//   } catch (error) {
-//     console.error("❌ Error reviewing candidate:", error);
-//     res.status(500).json({ error: "Internal server error" });
-//   }
-// });
-
 //HR mail to manager
 router.post("/notify-manager", async (req, res) => {
   try {
     const { candidate_id, progress_status } = req.body;
+    console.log("📩 Notifying manager for candidate:", candidate_id);
 
-    if (progress_status !== "Yet to share") {
+    if (progress_status.toLowerCase() !== "yet to share") {
       return res.status(400).json({ message: "Invalid progress status" });
     }
 
@@ -381,8 +296,9 @@ router.post("/notify-manager", async (req, res) => {
       
       Name: ${candidate.candidate_name}
       Email: ${candidate.candidate_email_id}
-      Position: ${candidate.position}
-      Contact: ${candidate.contact_number}
+      Contact: ${candidate.contact_number || "N/A"}
+      Position: ${candidate.position || "N/A"}
+
       
       Please Review the details.`,
     };
@@ -400,7 +316,7 @@ const totalMaster = [
   "application received",
   "phone screening",
   "l1 interview",
-  "yet to share",
+  "Yet to Share",
   "l2 interview",
   "shared with client",
 ];
@@ -409,6 +325,12 @@ const totalMaster = [
 router.put("/total-master-data/:id", async (req, res) => {
   const { id } = req.params;
   const { progress_status } = req.body;
+
+  if (!progress_status || typeof progress_status !== "string") {
+    return res
+      .status(400)
+      .json({ message: "Invalid progress status provided" });
+  }
 
   try {
     const activeRecord = await ActiveList.findByPk(id);
@@ -443,6 +365,8 @@ router.put("/total-master-data/:id", async (req, res) => {
         message: "Progress status updated in both ActiveList",
       });
     }
+        
+    await removeCandidateFromAllExcept(activeRecord.candidate_email_id, "TotalMasterData");
     // If new status is in the allowed list, move to TotalMasterData
     if (totalMaster.includes(progress_status.toLowerCase())) {
       await TotalMasterData.create({
@@ -453,7 +377,7 @@ router.put("/total-master-data/:id", async (req, res) => {
         candidate_email_id: activeRecord.candidate_email_id,
         position: activeRecord.position,
         department: activeRecord.department,
-        progress_status: activeRecord.progress_status,
+        progress_status: progress_status,
         status_date: today,
         entry_date: activeRecord.entry_date || today,
       });
@@ -512,6 +436,8 @@ router.put("/about-to-join/:id", async (req, res) => {
         message: "Progress status updated in both ActiveList and About To Join",
       });
     }
+        
+    await removeCandidateFromAllExcept(activeRecord.candidate_email_id, "AboutToJoin");
     // If new status is in the allowed list, move to About ToJoin
     if (aboutToJoin.includes(progress_status.toLowerCase())) {
       await AboutToJoin.create({
@@ -520,7 +446,7 @@ router.put("/about-to-join/:id", async (req, res) => {
         candidate_email_id: activeRecord.candidate_email_id,
         position: activeRecord.position,
         department: activeRecord.department,
-        progress_status: activeRecord.progress_status,
+        progress_status: progress_status,
         joining_date: today,
         HR_name: activeRecord.HR_name,
         HR_mail: activeRecord.HR_mail,
@@ -582,7 +508,7 @@ router.put("/newly-joined/:id", async (req, res) => {
           message: "Progress status updated in both ActiveList and NewlyJoined",
         });
       }
-
+       await removeCandidateFromAllExcept(activeRecord.candidate_email_id, "NewlyJoined");
       // If not already in NewlyJoined, insert new
       await NewlyJoined.create({
         candidate_id: activeRecord.candidate_id,
@@ -653,6 +579,7 @@ router.put("/buffer-data/:id", async (req, res) => {
         });
       }
 
+       await removeCandidateFromAllExcept(activeRecord.candidate_email_id, "BufferData");
       // If not in BufferData, create new entry
       await BufferData.create({
         candidate_id: activeRecord.candidate_id,
@@ -680,21 +607,23 @@ router.put("/buffer-data/:id", async (req, res) => {
   }
 });
 
-router.delete("/delete/:id", async(req, res) => {
+router.delete("/delete/:id", async (req, res) => {
   const candidateId = req.params.id;
 
-  try{
-    const deleted = await ActiveList.destroy({where: {candidate_id: candidateId}});
+  try {
+    const deleted = await ActiveList.destroy({
+      where: { candidate_id: candidateId },
+    });
 
-    if(deleted) {
-      res.status(200).json({message: "candidate deleted successfully"});
+    if (deleted) {
+      res.status(200).json({ message: "candidate deleted successfully" });
     } else {
-      res.status(404).json({message: "candidate not found"});
+      res.status(404).json({ message: "candidate not found" });
     }
-  } catch(error){
+  } catch (error) {
     console.error("Error deleting candidate:", error);
-    res.status(500).json({message: "Server error"});
+    res.status(500).json({ message: "Server error" });
   }
-})
+});
 
 module.exports = router;

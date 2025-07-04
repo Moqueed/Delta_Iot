@@ -3,7 +3,9 @@ import React, { useEffect, useState } from "react";
 import { Table, Typography, Tag, Spin, Alert, Button } from "antd";
 import axios from "axios";
 import DashboardHomeLink from "../../components/DashboardHomeLink";
-import { LogoutOutlined } from "@ant-design/icons";
+import { HomeOutlined, LogoutOutlined } from "@ant-design/icons";
+import { Link } from "react-router-dom";
+import { useHR } from "../../components/HRContext";
 
 const { Title } = Typography;
 
@@ -11,6 +13,7 @@ const RejectedDataPage = () => {
   const [rejectedData, setRejectedData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const { hrName } = useHR();
 
   useEffect(() => {
     const fetchRejectedData = async () => {
@@ -79,13 +82,15 @@ const RejectedDataPage = () => {
       <div className="candidate-header">
         <div className="header-left">
           <img src="/images/hrms-logo.jpg" alt="logo" className="logo" />
-          <DashboardHomeLink />
+          <Link to="/total-data">
+            <HomeOutlined className="home-icon" style={{ fontSize: "24px" }} />
+          </Link>
         </div>
 
         <h2>Rejected Candidates</h2>
 
         <div className="header-right">
-          <span className="welcome-text">Welcome: Moqueed Ahmed</span>
+           <span className="welcome-text">Welcome: {hrName}</span>
           <Button
             icon={<LogoutOutlined />}
             onClick={handleLogout}

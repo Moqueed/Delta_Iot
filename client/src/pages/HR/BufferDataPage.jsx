@@ -2,11 +2,14 @@ import React, { useEffect, useState } from "react";
 import { Table, Spin, message, Button } from "antd";
 import { fetchBufferData } from "../../api/totalData";
 import DashboardHomeLink from "../../components/DashboardHomeLink";
-import { LoginOutlined } from "@ant-design/icons";
+import { HomeOutlined, LoginOutlined } from "@ant-design/icons";
+import { Link } from "react-router-dom";
+import { useHR } from "../../components/HRContext";
 
 const BufferDataPage = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { hrName } = useHR();
 
   useEffect(() => {
     const loadData = async () => {
@@ -47,24 +50,26 @@ const BufferDataPage = () => {
     { title: "Status Date", dataIndex: "status_date", key: "status_date" },
   ];
 
-    const handleLogout = () => {
-      localStorage.clear();
-      message.success("Logout successfully");
-      window.location.href = "/login";
-    };
+  const handleLogout = () => {
+    localStorage.clear();
+    message.success("Logout successfully");
+    window.location.href = "/login";
+  };
 
   return (
     <div className="total-master-data-container">
       <div className="candidate-header">
         <div className="header-left">
           <img src="/images/hrms-logo.jpg" alt="logo" className="logo" />
-          <DashboardHomeLink />
+          <Link to="/total-data">
+            <HomeOutlined className="home-icon" style={{ fontSize: "24px" }} />
+          </Link>
         </div>
 
         <h2>Buffer Data</h2>
 
         <div className="header-right">
-          <span className="welcome-text">Welcome: Moqueed Ahmed</span>
+          <span className="welcome-text">Welcome: {hrName}</span>
           <Button
             icon={<LoginOutlined />}
             onClick={handleLogout}

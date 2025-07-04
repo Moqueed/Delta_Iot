@@ -80,7 +80,9 @@ export const notifyManager = async (candidateId, progressStatus) => {
       {
         candidate_id: candidateId,
         progress_status: progressStatus,
+        
       }
+      
     );
     message.success("Manager notified successfully");
     return response.data;

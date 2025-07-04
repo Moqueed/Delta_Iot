@@ -1,24 +1,19 @@
+// DashboardHomeLink.jsx
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { HomeOutlined } from "@ant-design/icons";
 
 const DashboardHomeLink = () => {
-  const [dashboardLink, setDashboardLink] = useState("/login"); // default is login
+  const [dashboardLink, setDashboardLink] = useState(null);
 
   useEffect(() => {
     const role = localStorage.getItem("role")?.toLowerCase();
-
-    switch (role) {
-      case "admin":
-        setDashboardLink("/admin-dashboard");
-        break;
-      case "hr":
-        setDashboardLink("/hr-dashboard");
-        break;
-      default:
-        setDashboardLink("/login");
-    }
+    if (role === "admin") setDashboardLink("/admin-dashboard");
+    else if (role === "hr") setDashboardLink("/hr-dashboard");
+    else setDashboardLink("/login");
   }, []);
+
+  if (!dashboardLink) return null; // prevent premature render
 
   return (
     <Link to={dashboardLink}>

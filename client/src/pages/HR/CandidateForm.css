@@ -17,3 +17,15 @@
   background: #d48806;
   color: #fff;
 }
+
+.notify-manager-button {
+  background-color: #d9d9d9;
+  border-color: #d9d9d9;
+  color: #888;
+}
+
+.notify-manager-button.active {
+  background-color: #52c41a;
+  border-color: #52c41a;
+  color: #fff;
+}

@@ -5,7 +5,7 @@ export const addCandidate = async (candidateData) => {
   try {
     const response = await axiosInstance.post(
       "/api/candidates/add-candidate",
-      candidateData,
+      candidateData
     );
     return response.data;
   } catch (error) {
@@ -52,10 +52,11 @@ export const deleteCandidate = async (id) => {
   }
 };
 //Get all candidates
-export const getCandidates = async () => {
+// 📁 api/candidates.js
+export const getCandidatesByHR = async (email) => {
   try {
-    const response = await axiosInstance.get("/api/candidates/fetch");
-    return response.data;
+    const res = await axiosInstance.get(`/api/candidates/by-hr/${email}`);
+    return res.data;
   } catch (error) {
     console.error("Error fetching candidates:", error);
     throw error.response?.data?.message || "Failed to fetch candidates";

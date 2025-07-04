@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { Layout, List, Typography, message, Spin, Button } from "antd";
-import { fetchResumeFile } from "../../api/upload";
+import { fetchResumeFile, getUploadsByHR } from "../../api/upload";
 import axiosInstance from "../../api";
 import DashboardHomeLink from "../../components/DashboardHomeLink";
 import { LogoutOutlined } from "@ant-design/icons";
+import { useHR } from "../../components/HRContext";
 
 const { Sider, Content } = Layout;
 
@@ -12,14 +13,15 @@ const UploadPage = () => {
   const [selectedFile, setSelectedFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState("");
   const [loading, setLoading] = useState(false);
+  const { hrName } = useHR();
 
   // ✅ Fetch uploaded files using axiosInstance
   const fetchUploadedFiles = async () => {
+    const hrEmail = localStorage.getItem("userEmail");
     try {
-      const res = await axiosInstance.get("/api/uploads/list");
-      setFileList(res.data.files);
-    } catch (err) {
-      console.error("❌ Error fetching file list", err);
+      const files = await getUploadsByHR(hrEmail); // ✅ proper use
+      setFileList(files);
+    } catch (error) {
       message.error("Failed to load uploaded files");
     }
   };
@@ -31,19 +33,21 @@ const UploadPage = () => {
   };
 
   const handleFileClick = async (filename) => {
-  try {
-    setLoading(true);
-    const blob = await fetchResumeFile(filename);
-    const url = URL.createObjectURL(new Blob([blob], { type: "application/pdf" }));
-    setPreviewUrl(url);
-  } catch (err) {
-    console.error("❌ Error previewing file", err);
-    message.error("Could not preview file");
-  } finally {
-    setLoading(false);
-  }
-};
-
+    try {
+      setLoading(true);
+      const blob = await fetchResumeFile(filename);
+      const url = URL.createObjectURL(
+        new Blob([blob], { type: "application/pdf" })
+      );
+      setPreviewUrl(url);
+      setSelectedFile(filename);
+    } catch (err) {
+      console.error("❌ Error previewing file", err);
+      message.error("Could not preview file");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     fetchUploadedFiles();
@@ -60,7 +64,7 @@ const UploadPage = () => {
         <h2>uploads</h2>
 
         <div className="header-right">
-          <span className="welcome-text">Welcome: Moqueed Ahmed</span>
+          <span className="welcome-text">Welcome: {hrName}</span>
           <Button
             icon={<LogoutOutlined />}
             onClick={handleLogout}
@@ -88,9 +92,9 @@ const UploadPage = () => {
                     backgroundColor:
                       item === selectedFile ? "#e6f7ff" : undefined,
                   }}
-                  onClick={() => handleFileClick(item)}
+                  onClick={() => handleFileClick(item.filename)} // Use filename here
                 >
-                  {item}
+                  {item.filename} {/* ✅ Safely render string */}
                 </List.Item>
               )}
             />

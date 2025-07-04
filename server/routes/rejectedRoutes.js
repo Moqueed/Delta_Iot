@@ -4,6 +4,7 @@ const ActiveList = require("../models/ActiveList");
 const Approval = require("../models/Approval");
 const Candidate = require("../models/Candidate");
 const Rejected = require("../models/Rejected");
+const { removeCandidateFromAllExcept } = require("../utils/dataCleaner");
 
 
 //Rejected from ActiveList
@@ -51,7 +52,7 @@ router.put("/rejected-data/:id", async (req, res) => {
             "Progress status updated in both ActiveList and Rejected Data",
         });
       }
-
+       await removeCandidateFromAllExcept(activeRecord.candidate_email_id, "Rejected Data");
       // Create new RejectedData entry
       await Rejected.create({
         candidate_email_id: activeRecord.candidate_email_id,
@@ -93,23 +94,6 @@ router.put("/approve-status-rejected/:email", async (req, res) => {
         .status(404)
         .json({ error: "No pending approval request found" });
     }
-
-    // if (approval_status === "Approved") {
-    //   // ✅ Update Candidate and ActiveList with the new progress_status
-    //   // await Candidate.update(
-    //   //   { progress_status: approvalRequest.requested_progress_status },
-    //   //   { where: { candidate_email_id: email } }
-    //   // );
-
-    //   await ActiveList.update(
-    //     { progress_status },
-    //     { where: { candidate_email_id } }
-    //   );
-
-    //   // ✅ Remove the approval request after success
-    //   await approvalRequest.destroy();
-    //   return res.status(200).json({ message: "Candidate status approved and updated" });
-    // }
 
     if (approval_status === "Rejected") {
       if (!rejection_reason) {

@@ -5,6 +5,8 @@ const Candidate = require("../models/Candidate");
 const ActiveList = require("../models/ActiveList");
 const Rejected = require("../models/Rejected");
 const { NewlyJoined } = require("../models/TotalData");
+const AssignedCandidate = require("../models/AssignedCandidate");
+const { Op } = require("sequelize");
 
 // ✅ Add new candidate and conditionally sync to ActiveList
 router.post("/add-candidate", async (req, res) => {
@@ -153,14 +155,32 @@ router.get("/search/:email", async (req, res) => {
 });
 
 // ✅ Get all candidates
-router.get("/fetch", async (req, res) => {
+// 📁 routes/candidates.js
+router.get("/by-hr/:email", async (req, res) => {
+  const { email } = req.params;
+
   try {
-    const candidates = await Candidate.findAll();
-    res.json(candidates);
+    const assignedCandidates = await Candidate.findAll({
+      where: { HR_mail: email },
+      attributes: ["candidate_email_id"],
+    });
+
+    const candidateEmails = assignedCandidates.map((ac) => ac.candidate_email_id);
+
+    const candidates = await Candidate.findAll({
+      where: {
+        candidate_email_id: {
+          [Op.in]: candidateEmails
+        }
+      },
+    });
+
+    res.status(200).json(candidates);
   } catch (error) {
-    console.error("❌ Error fetching candidates:", error);
-    res.status(500).json({ error: "Internal server error" });
+    console.error("❌ Error fetching HR-specific candidates:", error);
+    res.status(500).json({ message: "Server error" });
   }
 });
+
 
 module.exports = router;

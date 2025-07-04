@@ -2,12 +2,15 @@ import React, { useEffect, useState } from "react";
 import { Table, Spin, message, Button } from "antd";
 import { fetchAboutToJoin } from "../../api/totalData";
 import DashboardHomeLink from "../../components/DashboardHomeLink";
-import { LogoutOutlined } from "@ant-design/icons";
+import { HomeOutlined, LogoutOutlined } from "@ant-design/icons";
+import { Link } from "react-router-dom";
+import { useHR } from "../../components/HRContext";
 
 
 const AboutToJoinPage = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { hrName } = useHR();
 
   useEffect(() => {
     const loadData = async () => {
@@ -48,13 +51,15 @@ const AboutToJoinPage = () => {
       <div className="candidate-header">
         <div className="header-left">
          <img src="/images/hrms-logo.jpg" alt="logo" className="logo" />
-          <DashboardHomeLink />
+          <Link to="/total-data">
+            <HomeOutlined className="home-icon" style={{ fontSize: "24px" }} />
+          </Link>
         </div>
 
         <h2>About to Join</h2>
 
         <div className="header-right">
-          <span className="welcome-text">Welcome: Moqueed Ahmed</span>
+          <span className="welcome-text">Welcome: {hrName}</span>
           <Button
             icon={<LogoutOutlined />}
             onClick={handleLogout}

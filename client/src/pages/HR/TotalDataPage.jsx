@@ -1,5 +1,5 @@
 import React from "react";
-import { Button, Card, Typography } from "antd";
+import { Button, Card, message, Typography } from "antd";
 import {
   DatabaseOutlined,
   UserAddOutlined,
@@ -12,10 +12,13 @@ import {
 import { Link, useNavigate } from "react-router-dom";
 import "./TotalDataPage.css";
 import DashboardHomeLink from "../../components/DashboardHomeLink";
+import { useHR } from "../../components/HRContext";
+
 
 const { Title } = Typography;
 
 const TotalDataPage = () => {
+  const { hrName } = useHR();
   const sections = [
     {
       title: "Total Master Data",
@@ -77,7 +80,7 @@ const TotalDataPage = () => {
         <h2>Total Data</h2>
 
         <div className="header-right">
-          <span className="welcome-text">Welcome: Moqueed Ahmed</span>
+          <span className="welcome-text">Welcome: {hrName}</span>
           <Button
             icon={<LogoutOutlined />}
             onClick={handleLogout}
