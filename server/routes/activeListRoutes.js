@@ -3,6 +3,8 @@ const router = express.Router();
 const ActiveList = require("../models/ActiveList");
 const Approval = require("../models/Approval");
 const Candidate = require("../models/Candidate");
+const HR = require("../models/HR");
+const HRDataTracker = require("../models/HRDataTracker");
 const Rejected = require("../models/Rejected");
 const nodemailer = require("nodemailer");
 const {
@@ -13,6 +15,8 @@ const {
 } = require("../models/TotalData");
 const sequelize = require("../config/database");
 const { removeCandidateFromAllExcept } = require("../utils/dataCleaner");
+const { Op, where } = require("sequelize");
+
 
 // Mail setup
 const transporter = nodemailer.createTransport({
@@ -365,8 +369,11 @@ router.put("/total-master-data/:id", async (req, res) => {
         message: "Progress status updated in both ActiveList",
       });
     }
-        
-    await removeCandidateFromAllExcept(activeRecord.candidate_email_id, "TotalMasterData");
+
+    await removeCandidateFromAllExcept(
+      activeRecord.candidate_email_id,
+      "TotalMasterData"
+    );
     // If new status is in the allowed list, move to TotalMasterData
     if (totalMaster.includes(progress_status.toLowerCase())) {
       await TotalMasterData.create({
@@ -436,8 +443,11 @@ router.put("/about-to-join/:id", async (req, res) => {
         message: "Progress status updated in both ActiveList and About To Join",
       });
     }
-        
-    await removeCandidateFromAllExcept(activeRecord.candidate_email_id, "AboutToJoin");
+
+    await removeCandidateFromAllExcept(
+      activeRecord.candidate_email_id,
+      "AboutToJoin"
+    );
     // If new status is in the allowed list, move to About ToJoin
     if (aboutToJoin.includes(progress_status.toLowerCase())) {
       await AboutToJoin.create({
@@ -508,7 +518,10 @@ router.put("/newly-joined/:id", async (req, res) => {
           message: "Progress status updated in both ActiveList and NewlyJoined",
         });
       }
-       await removeCandidateFromAllExcept(activeRecord.candidate_email_id, "NewlyJoined");
+      await removeCandidateFromAllExcept(
+        activeRecord.candidate_email_id,
+        "NewlyJoined"
+      );
       // If not already in NewlyJoined, insert new
       await NewlyJoined.create({
         candidate_id: activeRecord.candidate_id,
@@ -579,7 +592,10 @@ router.put("/buffer-data/:id", async (req, res) => {
         });
       }
 
-       await removeCandidateFromAllExcept(activeRecord.candidate_email_id, "BufferData");
+      await removeCandidateFromAllExcept(
+        activeRecord.candidate_email_id,
+        "BufferData"
+      );
       // If not in BufferData, create new entry
       await BufferData.create({
         candidate_id: activeRecord.candidate_id,
@@ -607,6 +623,44 @@ router.put("/buffer-data/:id", async (req, res) => {
   }
 });
 
+//filter in HR tracker page
+router.get("/filter", async (req, res) => {
+  try {
+    const { status, hr_name, startDate, endDate } = req.query;
+
+    const whereClause = {};
+    if (status) whereClause.progress_status = status;
+    if (hr_name) whereClause.HR_name = hr_name;
+    if (startDate && endDate) {
+      whereClause.status_date = {
+        [Op.between]: [new Date(startDate), new Date(endDate)],
+      };
+    }
+
+    const include = [];
+    if (hr_name) {
+      include.push({
+        model: HR,
+        as: "HR",
+        where: { name: hr_name },
+        attributes: ["id", "name", "email"],
+      });
+    }
+
+    const filteredCandidates = await ActiveList.findAll({
+      where: whereClause,
+      order: [["status_date", "DESC"]],
+    });
+
+    res.json(filteredCandidates);
+  } catch (error) {
+    console.error("❌ Error in filtering ActiveList:", error);
+    res.status(500).json({ message: "Server Error" });
+  }
+});
+
+
+//Delete from activeList
 router.delete("/delete/:id", async (req, res) => {
   const candidateId = req.params.id;
 

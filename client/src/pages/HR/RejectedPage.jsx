@@ -90,7 +90,10 @@ const RejectedDataPage = () => {
         <h2>Rejected Candidates</h2>
 
         <div className="header-right">
-           <span className="welcome-text">Welcome: {hrName}</span>
+          {hrName && hrName !== "HR" && (
+            <span className="welcome-text">Welcome: {hrName}</span>
+          )}
+
           <Button
             icon={<LogoutOutlined />}
             onClick={handleLogout}

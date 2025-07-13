@@ -1,6 +1,8 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/database");
 const Candidate = require("./Candidate");
+const HR = require("./HR");
+const HRDataTracker = require("./HRDataTracker");
 
 const ActiveList = sequelize.define(
   "ActiveList",
@@ -21,6 +23,14 @@ const ActiveList = sequelize.define(
       onUpdate: "CASCADE",
       unique: true, // Ensure a candidate appears only once in ActiveList
     },
+    hr_id: {
+      type: DataTypes.INTEGER,
+      references: {
+        model: HR,
+        key: "id",
+      },
+    },
+
     candidate_name: { type: DataTypes.STRING, allowNull: false },
     candidate_email_id: { type: DataTypes.STRING, allowNull: false },
     contact_number: { type: DataTypes.STRING(20), allowNull: true },
@@ -108,5 +118,10 @@ ActiveList.belongsTo(Candidate, {
   foreignKey: "candidate_id",
   onDelete: "CASCADE",
 });
+
+ActiveList.associate = (models) => {
+  ActiveList.belongsTo(models.HR, { foreignKey: "hr_id", as: "HR" });
+  ActiveList.hasMany(models.HRDataTracker, { foreignKey: "candidate_id" });
+};
 
 module.exports = ActiveList;

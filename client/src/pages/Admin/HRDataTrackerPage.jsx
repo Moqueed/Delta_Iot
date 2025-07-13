@@ -1,10 +1,23 @@
 import React, { useEffect, useState } from "react";
-import { Table, Select, DatePicker, Button, Row, Col, message } from "antd";
+import {
+  Table,
+  Select,
+  DatePicker,
+  Button,
+  Row,
+  Col,
+  message,
+} from "antd";
 import moment from "moment";
 import { HomeOutlined, LogoutOutlined } from "@ant-design/icons";
 import "./HRDataTrackerPage.css";
-import { getHRDataEntries } from "../../api/hrDataTracker";
+import {
+  fetchFilteredTrackerFromActiveList,
+  getHRDataEntries,
+  updateCandidateAndTracker,
+} from "../../api/hrDataTracker";
 import { Link } from "react-router-dom";
+import { useAdmin } from "../../components/AdminContext";
 
 const { Option } = Select;
 const { RangePicker } = DatePicker;
@@ -15,6 +28,7 @@ const HRDataTrackerPage = () => {
   const [statusFilter, setStatusFilter] = useState(null);
   const [hrFilter, setHrFilter] = useState(null);
   const [dateRange, setDateRange] = useState([]);
+  const { adminName } = useAdmin();
 
   useEffect(() => {
     fetchTrackerData();
@@ -23,39 +37,28 @@ const HRDataTrackerPage = () => {
   const fetchTrackerData = async () => {
     try {
       const data = await getHRDataEntries();
+      const result = await fetchFilteredTrackerFromActiveList({});
+      setFilteredData(result);
       setTrackerData(data);
-      setFilteredData(data);
     } catch (error) {
       message.error("Failed to load HR Data Tracker");
     }
   };
 
-  const handleLogout = () => {
-    localStorage.clear();
-    message.success("Logout successfully");
-    window.location.href = "/login";
-  };
+  const handleFilter = async () => {
+    try {
+      const filters = {
+        status: statusFilter,
+        hr_name: hrFilter,
+        startDate: dateRange?.[0]?.format("YYYY-MM-DD"),
+        endDate: dateRange?.[1]?.format("YYYY-MM-DD"),
+      };
 
-  const handleFilter = () => {
-    let data = [...trackerData];
-
-    if (statusFilter) {
-      data = data.filter((item) => item.status === statusFilter);
+      const result = await fetchFilteredTrackerFromActiveList(filters);
+      setFilteredData(result);
+    } catch (error) {
+      message.error("Failed to apply filters");
     }
-
-    if (hrFilter) {
-      data = data.filter((item) => item.HR?.name === hrFilter);
-    }
-
-    if (dateRange.length === 2) {
-      const [start, end] = dateRange;
-      data = data.filter((item) => {
-        const statusDate = moment(item.Candidate?.status_date);
-        return statusDate.isBetween(start, end, "day", "[]");
-      });
-    }
-
-    setFilteredData(data);
   };
 
   const clearFilters = () => {
@@ -65,32 +68,33 @@ const HRDataTrackerPage = () => {
     setFilteredData(trackerData);
   };
 
+  const handleLogout = () => {
+    localStorage.clear();
+    message.success("Logout successfully");
+    window.location.href = "/login";
+  };
+
   const columns = [
-    { title: "HR Name", dataIndex: ["HR", "name"], key: "hr_name" },
-    {
-      title: "Candidate Name",
-      dataIndex: ["Candidate", "candidate_name"],
-      key: "candidate_name",
-    },
-    {
-      title: "Position",
-      dataIndex: ["Candidate", "position"],
-      key: "position",
-    },
-    { title: "Status", dataIndex: "status", key: "status" },
+    { title: "HR Name", dataIndex: "HR_name", key: "HR_name" },
+    { title: "Candidate Name", dataIndex: "candidate_name", key: "candidate_name" },
+    { title: "Position", dataIndex: "position", key: "position" },
+    { title: "Status", dataIndex: "progress_status", key: "progress_status" },
     {
       title: "Status Date",
-      dataIndex: ["Candidate", "status_date"],
+      dataIndex: "status_date",
       key: "status_date",
+      render: (date) => (date ? moment(date).format("DD/MM/YYYY") : ""),
     },
     {
       title: "Entry Date",
-      dataIndex: ["Candidate", "entry_date"],
+      dataIndex: "entry_date",
       key: "entry_date",
+      render: (date) => (date ? moment(date).format("DD/MM/YYYY") : ""),
     },
   ];
 
-  const allHRNames = [...new Set(trackerData.map((item) => item.HR?.name))];
+  const allHRNames = [...new Set(trackerData.map((item) => item?.name))];
+
   const STATUS_OPTIONS = [
     "Application Received",
     "Phone Screening",
@@ -113,7 +117,7 @@ const HRDataTrackerPage = () => {
     <div className="tracker-container">
       <div className="tracker-header">
         <div className="header-left">
-         <img src="/images/hrms-logo.jpg" alt="logo" className="logo" />
+          <img src="/images/hrms-logo.jpg" alt="logo" className="logo" />
           <Link to="/admin-dashboard">
             <HomeOutlined className="home-icon" />
           </Link>
@@ -122,7 +126,7 @@ const HRDataTrackerPage = () => {
         <h2>HR Data Tracker</h2>
 
         <div className="header-right">
-          <span className="welcome-text">Welcome: Moqueed Ahmed</span>
+          <span className="welcome-text">Welcome: {adminName}</span>
           <Button
             icon={<LogoutOutlined />}
             onClick={handleLogout}
@@ -160,6 +164,7 @@ const HRDataTrackerPage = () => {
               value={hrFilter}
               onChange={(val) => setHrFilter(val)}
               style={{ width: 200 }}
+              allowClear
             >
               {allHRNames.map((name) => (
                 <Option key={name} value={name}>
@@ -175,6 +180,12 @@ const HRDataTrackerPage = () => {
               onChange={(dates) => setDateRange(dates)}
               format="MM/DD/YYYY"
             />
+          </Col>
+
+          <Col>
+            <Button type="primary" onClick={handleFilter}>
+              Apply Filter
+            </Button>
           </Col>
 
           <Col>
@@ -198,9 +209,7 @@ const HRDataTrackerPage = () => {
       <Table
         columns={columns}
         dataSource={filteredData}
-        rowKey={(record) =>
-          `${record.hr_id}-${record.candidate_id}-${record.status}`
-        }
+        rowKey={(record) => record.id}
         style={{ marginTop: 20 }}
         bordered
       />

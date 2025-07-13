@@ -10,6 +10,7 @@ import "./PositionForm.css";
 import { Link } from "react-router-dom";
 import { HomeOutlined, LogoutOutlined } from "@ant-design/icons";
 import DashboardHomeLink from "../../components/DashboardHomeLink";
+import { useAdmin } from "../../components/AdminContext";
 
 const { Option } = Select;
 
@@ -17,6 +18,7 @@ const PositionForm = () => {
   const [form] = Form.useForm();
   const [positions, setPositions] = useState([]);
   const [selectedPosition, setSelectedPosition] = useState(null);
+   const { adminName } = useAdmin();
 
   // ✅ Function to fetch and refresh positions
   const refreshPositions = async () => {
@@ -135,7 +137,7 @@ const PositionForm = () => {
         <h2>Active Positions</h2>
 
         <div className="header-right">
-          <span className="welcome-text">Welcome: Moqueed Ahmed</span>
+          <span className="welcome-text">Welcome: {adminName}</span>
           <Button
             icon={<LogoutOutlined />}
             onClick={handleLogout}

@@ -9,6 +9,9 @@ export const HRProvider = ({ children }) => {
   useEffect(() => {
     const hrEmail = localStorage.getItem("userEmail");
     const token = localStorage.getItem("token");
+    const role = localStorage.getItem("role");
+
+    if (role === "admin") return; // ⛔ Don't fetch HR name for admin
 
     if (hrEmail && token) {
       axiosInstance
@@ -18,6 +21,7 @@ export const HRProvider = ({ children }) => {
           },
         })
         .then((res) => {
+            console.log("✅ HR response", res.data);
           setHrName(res.data.name || "HR");
         })
         .catch((err) => {

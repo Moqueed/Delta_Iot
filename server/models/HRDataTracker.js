@@ -3,7 +3,6 @@ const sequelize = require("../config/database");
 
 const HR = require("./HR");
 const Candidate = require("./Candidate");
-
 const HRDataTracker = sequelize.define(
   "HRDataTracker",
   {
@@ -19,10 +18,6 @@ const HRDataTracker = sequelize.define(
         model: HR,
         key: "id",
       },
-    },
-    HR_name: {
-      type: DataTypes.STRING,
-      allowNull: false,
     },
     candidate_id: {
       type: DataTypes.INTEGER,
@@ -65,10 +60,16 @@ const HRDataTracker = sequelize.define(
 );
 
 // ✅ Define Associations
-HR.hasMany(HRDataTracker, { foreignKey: "hr_id" });
-Candidate.hasMany(HRDataTracker, { foreignKey: "candidate_id" });
+HRDataTracker.associate = (models) => {
+  HRDataTracker.belongsTo(models.HR, {
+    foreignKey: "hr_id",
+    as: "HR",
+  });
+  HRDataTracker.belongsTo(models.ActiveList, {
+    foreignKey: "candidate_id",
+    as: "Candidate",
+  });
+};
 
-HRDataTracker.belongsTo(HR, { foreignKey: "hr_id" });
-HRDataTracker.belongsTo(Candidate, { foreignKey: "candidate_id" });
 
 module.exports = HRDataTracker;

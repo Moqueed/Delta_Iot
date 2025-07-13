@@ -4,11 +4,13 @@ import { addHR, getHRS, saveUpdateHR } from "../../api/hrApi";
 import "./HRPage.css";
 import { HomeOutlined, LogoutOutlined } from "@ant-design/icons";
 import { Link } from "react-router-dom";
+import { useAdmin } from "../../components/AdminContext";
 
 const HRListPage = () => {
   const [form] = Form.useForm();
   const [hrList, setHrList] = useState([]);
   const [selectedHR, setSelectedHR] = useState(null);
+  const { adminName } = useAdmin();
 
   const loadHRs = async () => {
     try {
@@ -99,7 +101,7 @@ const HRListPage = () => {
             <h2>HR's List</h2>
 
         <div className="header-right">
-           <span className="welcome-text">Welcome: Moqueed Ahmed</span>
+           <span className="welcome-text">Welcome: {adminName}</span>
           <Button
             icon={<LogoutOutlined/>}
             onClick={handleLogout}

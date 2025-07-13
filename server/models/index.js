@@ -7,7 +7,9 @@ const AssignToHR = require("./AssignToHR");
 const AssignedCandidate = require("./AssignedCandidate");
 const sequelize = require("../config/database");
 const HRVacancyAssignment = require("./HRVacancyAssignment");
-// const { TotalMasterData } = require("./TotalData");
+const ActiveList = require("./ActiveList");
+const HRDataTracker = require("./HRDataTracker");
+
 
 
 const models = {
@@ -18,16 +20,12 @@ const models = {
   HR,
   AssignToHR,
   AssignedCandidate,
-  HRVacancyAssignment
+  HRVacancyAssignment,
+  ActiveList,
+  HRDataTracker,
 };
 
 
-// // Setup associations manually
-// if (ActivePosition.associate) ActivePosition.associate(models);
-// if (HRVacancy.associate) HRVacancy.associate(models);
-// if (Candidate.associate) Candidate.associate(models);
-// if (HR.associate) HR.associate(models);
-// if (AssignToHR.associate) AssignToHR.associate(models);
 
 // ✅ Setup associations (recommended way)
 Object.values(models).forEach((model) => {
@@ -37,7 +35,4 @@ Object.values(models).forEach((model) => {
 });
 
 // Optional: Export all models
-module.exports = {
-  sequelize,
-  ...models,
-};
+module.exports = models; 

@@ -58,19 +58,6 @@ export const requestReview = async (email, progressStatus, requestBy) => {
   }
 };
 
-// export const reviewStatus = async (email, approvalStatus) => {
-//   try {
-//     const response = await axiosInstance.put(
-//       `/api/activeList/review-status/${email}`,
-//       { approval_status: approvalStatus }
-//     );
-//     return response.data;
-//   } catch (error) {
-//     console.error("Error reviewing candidate", error);
-//     throw error;
-//   }
-// };
-
 
 //HR mail to manager
 export const notifyManager = async (candidateId, progressStatus) => {
@@ -163,6 +150,28 @@ export const updateBufferData = async (id, progressStatus, statusReason) => {
     const errorMsg =
       error.response?.data?.message || "Failed to update Buffer data status.";
     message.error(errorMsg);
+  }
+};
+
+
+//fetch candidates for HR DataTracker
+export const fetchFilteredCandidates = async (filters) => {
+  const { status, hr_name, startDate, endDate } = filters;
+
+  const params = {};
+  if (status) params.status = status;
+  if (hr_name) params.hr_name = hr_name;
+  if (startDate && endDate) {
+    params.startDate = startDate;
+    params.endDate = endDate;
+  }
+
+  try {
+    const res = await axiosInstance.get("/api/activelist/filter", { params });
+    return res.data;
+  } catch (err) {
+    console.error("❌ Failed to fetch filtered candidates:", err);
+    throw err; // rethrow for caller to handle
   }
 };
 

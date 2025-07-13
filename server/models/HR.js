@@ -34,8 +34,23 @@ const HR = sequelize.define(
   { tableName: "hrs", timestamps: false }
 );
 
+// ✅ Combine all associations into a single associate method
 HR.associate = (models) => {
-    HR.hasMany(models.AssignedCandidate, { foreignKey: "HR_mail", sourceKey: "email", as: 'assignedCandidates',});
-  };
+  HR.hasMany(models.AssignedCandidate, {
+    foreignKey: "HR_mail",
+    sourceKey: "email",
+    as: "assignedCandidates",
+  });
+
+  HR.hasMany(models.ActiveList, {
+    foreignKey: "hr_id",
+    as: "ActiveLists",
+  });
+
+  HR.hasMany(models.HRDataTracker, {
+    foreignKey: "hr_id",
+    as: "HRDataEntries",
+  });
+};
 
 module.exports = HR;

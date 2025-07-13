@@ -14,6 +14,7 @@ import "./AssignToHrPage.css";
 import { Link } from "react-router-dom";
 import { useEffect } from "react";
 import DashboardHomeLink from "../../components/DashboardHomeLink";
+import { useAdmin } from "../../components/AdminContext";
 const { Option } = Select;
 
 const AssignToHrPage = () => {
@@ -22,6 +23,7 @@ const AssignToHrPage = () => {
   const [searchError, setSearchError] = useState(null);
   const [searchForm] = Form.useForm();
   const [assignedCandidates, setAssignedCandidates] = useState([]);
+     const { adminName } = useAdmin();
 
   useEffect(() => {
     const getCandidates = async () => {
@@ -115,7 +117,7 @@ const AssignToHrPage = () => {
           <div><h2>Assign To HR</h2></div>
 
           <div className="header-right">
-            <span className="welcome-text">Welcome: Moqueed Ahmed</span>
+           <span className="welcome-text">Welcome: {adminName}</span>
             <Button
               icon={<LogoutOutlined />}
               onClick={handleLogout}

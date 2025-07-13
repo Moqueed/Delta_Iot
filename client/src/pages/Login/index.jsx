@@ -26,6 +26,9 @@ const LoginPage = () => {
         localStorage.setItem("token", response.token);
         localStorage.setItem("role", decoded.role || values.role); // from JWT
         localStorage.setItem("userEmail", decoded.email || values.email); // from JWT
+        if (decoded.role === "admin") {
+          localStorage.setItem("adminName", "Arun Kumar");
+        }
 
         message.success(`Welcome, ${decoded.role || values.role}!`);
 
@@ -51,7 +54,11 @@ const LoginPage = () => {
     <div className="login-container">
       <div className="login-left">
         <div className="login-box">
-          <Avatar size={64} icon={<UserOutlined />} style={{ marginBottom: 10 }} />
+          <Avatar
+            size={64}
+            icon={<UserOutlined />}
+            style={{ marginBottom: 10 }}
+          />
           <Title level={3}>HRMS</Title>
           <Title level={4}>Log In</Title>
 
@@ -65,7 +72,9 @@ const LoginPage = () => {
 
             <Form.Item
               name="password"
-              rules={[{ required: true, message: "Please enter your password" }]}
+              rules={[
+                { required: true, message: "Please enter your password" },
+              ]}
             >
               <Input.Password placeholder="Enter your password" prefix="🔒" />
             </Form.Item>

@@ -137,4 +137,11 @@ const Candidate = sequelize.define(
 
 Candidate.hasMany(AssignedCandidate, { foreignKey: "candidate_id", as: "assignments" });
 
+Candidate.associate = (models) => {
+  Candidate.hasMany(models.HRDataTracker, {
+    foreignKey: "candidate_id",
+    as: "TrackerEntries",
+  });
+};
+
 module.exports = Candidate;

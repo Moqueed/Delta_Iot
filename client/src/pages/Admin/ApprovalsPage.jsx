@@ -28,12 +28,14 @@ import "./ApprovalsPage.css";
 import { Link } from "react-router-dom";
 import DashboardHomeLink from "../../components/DashboardHomeLink";
 import { uploadResumeToAll } from "../../api/upload";
+import { useAdmin } from "../../components/AdminContext";
 
 const ApprovalsPage = () => {
   const [approvals, setApprovals] = useState([]);
   const [formStates, setFormStates] = useState({});
   const [loading, setLoading] = useState(false);
   const [selectedCandidate, setSelectedCandidate] = useState(null);
+   const { adminName } = useAdmin();
 
   const fetchApprovals = async () => {
     try {
@@ -239,7 +241,7 @@ const ApprovalsPage = () => {
         <h2>Approvals</h2>
 
         <div className="header-right">
-          <span className="welcome-text">Welcome: Moqueed Ahmed</span>
+         <span className="welcome-text">Welcome: {adminName}</span>
           <Button
             icon={<LogoutOutlined />}
             onClick={handleLogout}

@@ -1,5 +1,3 @@
-import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { Card, Row, Col, Typography, Button, message } from "antd";
 import {
   FileOutlined,
@@ -10,64 +8,63 @@ import {
   LogoutOutlined,
 } from "@ant-design/icons";
 import "./HRDashboard.css";
-import axiosInstance from "../../api";
+import { useHR } from "../../components/HRContext";
+import { useNavigate } from "react-router-dom";
 
 const { Title } = Typography;
 
 const HRDashboard = () => {
-  const [hrName, setHrName] = useState("");
+  const{hrName} = useHR();
   const navigate = useNavigate();
-  const hrEmail = localStorage.getItem("userEmail");
-
-  // ✅ Redirect if not HR
- useEffect(() => {
-  if (!hrEmail) {
-    message.error("User email not found. Please log in again.");
-    navigate("/login", { replace: true });
-    return;
-  }
-
-  const fetchHRDetails = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      const response = await axiosInstance.get(`/api/hr/email/${hrEmail}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      setHrName(response.data.name || "HR");
-    } catch (err) {
-      console.error("Failed to fetch HR details", err);
-      setHrName("HR");
-    }
-  };
-
-  fetchHRDetails();
-}, [hrEmail, navigate]);
 
   // ✅ Logout using React Router
-  const handleLogout = () => {
+   const handleLogout = () => {
     localStorage.clear();
     message.success("Logout successfully");
-    navigate("/login", { replace: true });
+    window.location.href = "/login";
   };
 
   // ✅ Card sections
   const sections = [
-    { key: "vacancies", icon: <FileOutlined />, title: "Vacancies", borderColor: "#FFD700" },
-    { key: "total-data", icon: <DatabaseOutlined />, title: "Total Data", borderColor: "#32CD32" },
-    { key: "active-list", icon: <UserOutlined />, title: "Active List", borderColor: "#1E90FF" },
-    { key: "add-candidate", icon: <AppstoreAddOutlined />, title: "Add New Candidate", borderColor: "#FF4500" },
-    { key: "upload", icon: <FileTextOutlined />, title: "Upload", borderColor: "#32CD32" },
+    {
+      key: "vacancies",
+      icon: <FileOutlined />,
+      title: "Vacancies",
+      borderColor: "#FFD700",
+    },
+    {
+      key: "total-data",
+      icon: <DatabaseOutlined />,
+      title: "Total Data",
+      borderColor: "#32CD32",
+    },
+    {
+      key: "active-list",
+      icon: <UserOutlined />,
+      title: "Active List",
+      borderColor: "#1E90FF",
+    },
+    {
+      key: "add-candidate",
+      icon: <AppstoreAddOutlined />,
+      title: "Add New Candidate",
+      borderColor: "#FF4500",
+    },
+    {
+      key: "upload",
+      icon: <FileTextOutlined />,
+      title: "Upload",
+      borderColor: "#32CD32",
+    },
   ];
 
   // ✅ Route mapping
   const routeMap = {
-    "vacancies": "/hr-dashboard/vacancies",
+    vacancies: "/hr-dashboard/vacancies",
     "total-data": "/total-data",
     "active-list": "/hr-dashboard/active-list",
     "add-candidate": "/hr-dashboard/add-candidate",
-    "upload": "/hr-dashboard/upload",
+    upload: "/hr-dashboard/upload",
   };
 
   return (
@@ -79,7 +76,9 @@ const HRDashboard = () => {
         </div>
         <h2>HR Dashboard</h2>
         <div className="header-right">
-          <span className="welcome-text">Welcome: {hrName}</span>
+          {hrName && hrName !== "HR" && (
+            <span className="welcome-text">Welcome: {hrName}</span>
+          )}
           <Button
             icon={<LogoutOutlined />}
             onClick={handleLogout}

@@ -15,11 +15,13 @@ import {
   HomeOutlined,
 } from "@ant-design/icons";
 import "./AdminDashboard.css";
+import { useAdmin } from "../../components/AdminContext";
 
 const { Title } = Typography;
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
+  const { adminName } = useAdmin();
 
   const routeMap = {
     "active-positions": "/admin-dashboard/active-positions",
@@ -109,7 +111,7 @@ const AdminDashboard = () => {
         </div>
         <h2 className="header-title">Admin Dashboard</h2>
         <div className="header-right">
-          <span className="welcome-text">Welcome: Moqueed Ahmed</span>
+          <span className="welcome-text">Welcome: {adminName}</span>
           <Button
             icon={<LogoutOutlined />}
             onClick={handleLogout}
