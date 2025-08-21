@@ -16,6 +16,7 @@ const userRoutes = require("./routes/userRoutes");
 const protectedAdminRoutes = require("./routes/protectedRoutes/adminRoutes");
 const protectedHrRoutes = require("./routes/protectedRoutes/hrRoutes");
 const assignedCandidateRoutes = require("./routes/assignedCandidateRoutes");
+const notificationRoutes = require("./routes/notifications");
 const cors = require("cors");
 
 
@@ -43,6 +44,7 @@ app.use("/api/hr", hrRoutes);
 app.use("/api/hr-data-tracker", hrDataTrackerRoutes);
 app.use("/api/assign-to-hr", assignToHRRoutes);
 app.use("/api/assignedCandidate", assignedCandidateRoutes);
+app.use("/api/notifications", notificationRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/admin/protected", protectedAdminRoutes);
 app.use("/api/hr/protected", protectedHrRoutes);

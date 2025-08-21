@@ -19,7 +19,7 @@ const verifyToken = (req, res, next) => {
 // ✅ Role-Based Access Middleware
 const isAdmin = (req, res, next) => {
   console.log("🔍 Checking Admin Role:", req.user.role);
-  if (req.user.role !== "admin") {
+  if (req.user.role.toLowerCase() !== "admin") {
     return res.status(403).json({ message: "Access denied: Admins only" });
   }
   next();
@@ -27,7 +27,7 @@ const isAdmin = (req, res, next) => {
 
 const isHR = (req, res, next) => {
   console.log("🔍 Checking HR Role:", req.user.role);
-  if (req.user.role !== "hr") {
+  if (req.user.role.toLowerCase() !== "hr") {
     return res.status(403).json({ message: "Access denied: HR only" });
   }
   next();

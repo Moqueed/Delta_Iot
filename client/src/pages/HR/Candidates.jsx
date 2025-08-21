@@ -15,6 +15,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import dayjs from "dayjs";
 import {
   addCandidate,
+  deleteCandidate,
   getCandidatesByHR,
   searchCandidateByEmail,
   updateCandidate,
@@ -34,6 +35,7 @@ const Candidate = () => {
   const [loading, setLoading] = useState(false);
   const [file, setFile] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [candidateId, setCandidateId] = useState(null);
   const [searchError, setSearchError] = useState(null);
   const [searchForm] = Form.useForm();
   const [attachmentUrl, setAttachmentUrl] = useState(null);
@@ -43,7 +45,7 @@ const Candidate = () => {
   const { hrName } = useHR();
 
   useEffect(() => {
-    const fetchCandidate = async () => {
+    const fetchCandidates = async () => {
       setLoading(true);
       try {
         const email = localStorage.getItem("userEmail"); // ✅ Ensure this is set during login
@@ -72,8 +74,8 @@ const Candidate = () => {
         setLoading(false);
       }
     };
-    fetchCandidate();
-  }, [id, form, navigate]);
+    fetchCandidates();
+  }, [candidateId, form, navigate]);
 
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
@@ -85,10 +87,24 @@ const Candidate = () => {
     }
   };
 
+  const handleDelete = async (id) => {
+    try {
+      await deleteCandidate(id);
+      message.success("✅ Candidate deleted");
+      fetchCandidates(); // refresh list
+    } catch (err) {
+      message.error(err || "❌ Failed to delete candidate");
+    }
+  };
+
   const handleCandidateClick = (candidate) => {
     console.log("Selected candidate:", candidate);
     message.info(`Selected: ${candidate.candidate_name}`);
     setSelectedCandidate(candidate);
+
+    // ✅ Set editing mode and selected id
+    setIsEditing(true);
+    setCandidateId(candidate.id);
 
     // Set form values
     form.setFieldsValue({
@@ -189,8 +205,8 @@ const Candidate = () => {
       }
 
       // Step 2: Add or update candidate with attachments path
-      if (isEditing) {
-        await updateCandidate(id, candidateData);
+      if (isEditing && candidateId) {
+        await updateCandidate(candidateId, candidateData);
         await updateActiveList(candidateData);
       } else {
         const result = await searchCandidateByEmail(email);
@@ -232,7 +248,7 @@ const Candidate = () => {
         <h2>Candidates</h2>
 
         <div className="header-right">
-         <span className="welcome-text">Welcome: {hrName}</span>
+          <span className="welcome-text">Welcome: {hrName}</span>
           <Button
             icon={<LogoutOutlined />}
             onClick={handleLogout}
@@ -466,19 +482,6 @@ const Candidate = () => {
                   />
                 </Form.Item>
               </Col>
-
-              <Col span={8}>
-                <Form.Item name="current_ctc" label="Current CTC">
-                  <Input placeholder="Enter current CTC" />
-                </Form.Item>
-              </Col>
-
-              <Col span={8}>
-                <Form.Item name="expected_ctc" label="Expected CTC">
-                  <Input placeholder="Enter expected CTC" />
-                </Form.Item>
-              </Col>
-
               <Col span={8}>
                 <Form.Item name="Band" label="Band">
                   <Select placeholder="Select Band">
@@ -529,14 +532,27 @@ const Candidate = () => {
 
               <Col xs={24}>
                 <Form.Item className="form-submit">
-                  <Button
-                    type="primary"
-                    htmlType="submit"
-                    block
-                    loading={loading}
-                  >
-                    {isEditing ? "Update Candidate" : "Add Candidate"}
-                  </Button>
+                  <div className="form-actions">
+                    <Button
+                      type="primary"
+                      htmlType="submit"
+                      block={false} // keep it normal width
+                      loading={loading}
+                    >
+                      {isEditing ? "Update Candidate" : "Add Candidate"}
+                    </Button>
+
+                    {isEditing && candidateId && (
+                      <Button
+                        danger
+                        block={false}
+                        style={{ marginLeft: "10px" }}
+                        onClick={() => handleDelete(candidateId)} // pass correct id
+                      >
+                        Delete
+                      </Button>
+                    )}
+                  </div>
                 </Form.Item>
               </Col>
             </Row>

@@ -6,6 +6,7 @@ import { HomeOutlined, LogoutOutlined } from "@ant-design/icons";
 import "./TotalMasterDataPage.css";
 import { Link } from "react-router-dom";
 import { useHR } from "../../components/HRContext";
+import NotificationBell from "../../components/NotificationBell";
 
 const NewlyJoinedPage = () => {
   const [data, setData] = useState([]);
@@ -70,6 +71,7 @@ const NewlyJoinedPage = () => {
         <h2>Newly Joined</h2>
 
         <div className="header-right">
+          <NotificationBell/>
          <span className="welcome-text">Welcome: {hrName}</span>
           <Button
             icon={<LogoutOutlined />}

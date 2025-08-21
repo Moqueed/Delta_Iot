@@ -5,6 +5,7 @@ import DashboardHomeLink from "../../components/DashboardHomeLink";
 import { HomeOutlined, LoginOutlined } from "@ant-design/icons";
 import { Link } from "react-router-dom";
 import { useHR } from "../../components/HRContext";
+import NotificationBell from "../../components/NotificationBell";
 
 const BufferDataPage = () => {
   const [data, setData] = useState([]);
@@ -69,6 +70,7 @@ const BufferDataPage = () => {
         <h2>Buffer Data</h2>
 
         <div className="header-right">
+          <NotificationBell/>
           <span className="welcome-text">Welcome: {hrName}</span>
           <Button
             icon={<LoginOutlined />}

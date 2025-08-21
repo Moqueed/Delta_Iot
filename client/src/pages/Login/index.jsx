@@ -27,7 +27,7 @@ const LoginPage = () => {
         localStorage.setItem("role", decoded.role || values.role); // from JWT
         localStorage.setItem("userEmail", decoded.email || values.email); // from JWT
         if (decoded.role === "admin") {
-          localStorage.setItem("adminName", "Arun Kumar");
+          localStorage.setItem("adminName", "Rizwana Begum");
         }
 
         message.success(`Welcome, ${decoded.role || values.role}!`);

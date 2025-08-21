@@ -2,14 +2,13 @@ const { Op } = require("sequelize");
 const express = require("express");
 const path = require("path");
 const fs = require("fs");
-const uploadsFolder = path.join(__dirname, "../uploads");
 const upload = require("../middleware/uploadMiddleware");
 const Candidate = require("../models/Candidate");
 const ActiveList = require("../models/ActiveList");
 const Approval = require("../models/Approval");
-const AssignToHR = require("../models/AssignToHR");
 const AssignedCandidate = require("../models/AssignedCandidate");
 const Upload = require("../models/Upload");
+const sendNotification = require("../utils/sendNotification");
 
 const router = express.Router();
 
@@ -119,6 +118,16 @@ router.post("/upload/:email", upload.single("resume"), async (req, res) => {
       console.log(`Created new Approvals entry for ${email}`);
     }
 
+     // ✅ Send ONE combined notification
+    if (candidate) {
+      await sendNotification({
+        title: "Resume Uploaded & Synced",
+        message: `Resume uploaded for ${candidate.candidate_name}. Synced to ActiveList and Approvals.`,
+        recipientEmail: candidate.HR_mail,
+        type: "upload", // you can change this to "approval" or create a new type if needed
+      });
+    }
+
     res.json({
       message: "Resume uploaded and synced successfully",
       candidateResume: candidate.attachments,
@@ -160,6 +169,14 @@ router.post(
       // Update the attachments field
       assignedEntry.attachments = filePath;
       await assignedEntry.save();
+
+        // ✅ Create & send notification
+      await sendNotification({
+        title: "Resume Uploaded",
+        message: `Resume uploaded for ${assignedEntry.candidate_name} and saved in AssignedToHR.`,
+        recipientEmail: assignedEntry.hr_email, // assuming you store HR email in AssignedCandidate
+        type: "candidate", // or create "assigned" if you want separate type
+      });
 
       res.status(200).json({
         message: "Resume uploaded successfully to AssignedToHR",

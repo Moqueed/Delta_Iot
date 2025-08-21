@@ -19,8 +19,8 @@ import {
   updateNewlyJoined,
   updateBufferData,
   notifyManager,
+  updateRejectedCandidate,
 } from "../../api/activeList";
-import { updateRejectedCandidate } from "../../api/rejected";
 import { uploadResumeToAll } from "../../api/upload"; // Make sure this exists
 import "./CandidateForm.css";
 
@@ -103,9 +103,14 @@ const CandidateForm = ({ candidate, onUpdate }) => {
     "offer released": "Offer Released",
     "final discussion": "Final Discussion",
     "hr round cleared": "HR Round Cleared",
-    joined: "Joined",
-    hold: "Hold",
-    buffer: "Buffer",
+    "joined": "Joined",
+    "hold": "Hold",
+    "buffer": "Buffer",
+    "yet to share": "Yet to Share", 
+    "declined offer": "Declined Offer",
+    "rejected": "Rejected",
+    "no show" : "No show",
+    "withdrawn": "Withdrawn",
   };
 
   const handleSubmit = async (values) => {
@@ -120,11 +125,11 @@ const CandidateForm = ({ candidate, onUpdate }) => {
 
       if (rejectedStatuses.includes(status)) {
         await updateRejectedCandidate(
-          candidate.id,
-          originalStatus,
+          candidate.candidate_id,
+          status,
           values.rejection_reason || "Moved to rejected from Active List"
         );
-        await deleteActiveCandidate(candidate.id);
+        await deleteActiveCandidate(candidate.candidate_id);
         message.success(
           "Candidate moved to rejected and removed from Active List"
         );
@@ -137,7 +142,7 @@ const CandidateForm = ({ candidate, onUpdate }) => {
           "shared with client",
         ].includes(status)
       ) {
-        await UpdateTotalMasterData(candidate.id, originalStatus);
+        await UpdateTotalMasterData(candidate.candidate_id, originalStatus);
 
         if (status === "yet to share") {
           await notifyManager(candidate.candidate_id, originalStatus);
@@ -149,15 +154,16 @@ const CandidateForm = ({ candidate, onUpdate }) => {
           status
         )
       ) {
-        await UpdateAboutToJoin(candidate.id, originalStatus);
+        await UpdateAboutToJoin(candidate.candidate_id, originalStatus);
         message.success("Candidate moved to About To Join");
       } else if (status === "joined") {
-        await updateNewlyJoined(candidate.id, originalStatus);
+        await updateNewlyJoined(candidate.candidate_id, originalStatus);
         message.success("Candidate moved to Newly Joined");
       } else if (["hold", "buffer"].includes(status)) {
-        await updateBufferData(candidate.id, originalStatus);
+        await updateBufferData(candidate.candidate_id, originalStatus);
         message.success("Candidate moved to Buffer Data");
-      } else {
+      }
+      else {
         await updateActiveList({
           ...values,
           progress_status: originalStatus,

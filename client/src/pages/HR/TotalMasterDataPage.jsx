@@ -6,6 +6,7 @@ import { HomeOutlined, LogoutOutlined } from "@ant-design/icons";
 import DashboardHomeLink from "../../components/DashboardHomeLink";
 import { Link } from "react-router-dom";
 import { useHR } from "../../components/HRContext";
+import NotificationBell from "../../components/NotificationBell";
 
 const TotalMasterDataPage = () => {
   const [data, setData] = useState([]);
@@ -70,6 +71,7 @@ const TotalMasterDataPage = () => {
         <h2>Total Master Data</h2>
 
         <div className="header-right">
+          <NotificationBell/>
           <span className="welcome-text">Welcome: {hrName}</span>
           <Button
             icon={<LogoutOutlined />}

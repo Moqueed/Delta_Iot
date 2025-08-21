@@ -5,6 +5,7 @@ const Candidate = require("../models/Candidate");
 const Rejected = require("../models/Rejected");
 const Approval = require("../models/Approval");
 const nodemailer = require("nodemailer");
+const sendNotification = require("../utils/sendNotification");
 
 // ✅ Mail setup
 const transporter = nodemailer.createTransport({
@@ -29,10 +30,12 @@ const sendMail = async (to, subject, message) => {
   }
 };
 
-// ✅ Route with mail logic
+// ✅ Approval & Rejected by Admin
 router.put("/review-status/:email", async (req, res) => {
   try {
-    const approval_status = String(req.body.approval_status?.value || req.body.approval_status).trim();
+    const approval_status = String(
+      req.body.approval_status?.value || req.body.approval_status
+    ).trim();
 
     const approvalRequest = await Approval.findOne({
       where: {
@@ -55,15 +58,29 @@ router.put("/review-status/:email", async (req, res) => {
 
     // Valid ENUM values from your DB
     const validStatuses = [
-      "Application Received", "Phone Screening", "L1 Interview", "Yet to Share",
-      "L2 Interview", "Shared with Client", "Final Discussion", "Offer Released",
-      "Joined", "Declined Offer", "Rejected", "Withdrawn", "No Show",
-      "Buffer", "Hold", "HR Round Cleared"
+      "Application Received",
+      "Phone Screening",
+      "L1 Interview",
+      "Yet to Share",
+      "L2 Interview",
+      "Shared with Client",
+      "Final Discussion",
+      "Offer Released",
+      "Joined",
+      "Declined Offer",
+      "Rejected",
+      "Withdrawn",
+      "No Show",
+      "Buffer",
+      "Hold",
+      "HR Round Cleared",
     ];
 
     if (approval_status === "Approved") {
       if (!progress_status || !validStatuses.includes(progress_status)) {
-        return res.status(400).json({ error: "Invalid or missing progress status" });
+        return res
+          .status(400)
+          .json({ error: "Invalid or missing progress status" });
       }
 
       // Update ActiveList with the approved progress_status
@@ -72,32 +89,71 @@ router.put("/review-status/:email", async (req, res) => {
         { where: { candidate_email_id } }
       );
 
+        // ✅ Send Approved notification to HR
+      await sendNotification({
+        title: "Candidate Approved",
+        message: `${candidate_name} has been moved to Active list.`,
+        recipientEmail: HR_mail,
+        type: "activeList",
+      });
+
       // Send approval email to HR
       await sendMail(
         HR_mail,
         `Candidate Approved ✅ - ${candidate_name}`,
-        `Good news!\n\nThe candidate ${candidate_name} has been approved.\n\nNew Status: ${progress_status}\n\nComments: ${comments || "No additional comments."}`
+        `Good news!\n\nThe candidate ${candidate_name} has been approved.\n\nNew Status: ${progress_status}\n\nComments: ${
+          comments || "No additional comments."
+        }`
       );
     } else if (approval_status === "Rejected") {
-      await Rejected.create({
-        ...approvalRequest.dataValues,
-        progress_status: "Rejected",
-        rejection_reason: comments || "No comments provided",
+      const existingRejected = await Rejected.findOne({
+        where: { candidate_email_id },
       });
 
+      if (existingRejected) {
+        // Update the existing record
+        await existingRejected.update({
+          ...approvalRequest.dataValues,
+          progress_status: "Rejected",
+          rejection_reason: comments || "No comments provided",
+        });
+      } else {
+        // Create new entry if not found
+        await Rejected.create({
+          ...approvalRequest.dataValues,
+          progress_status: "Rejected",
+          rejection_reason: comments || "No comments provided",
+        });
+      }
+
+      // Remove from ActiveList after rejection
       await ActiveList.destroy({ where: { candidate_email_id } });
 
+      // ✅ Send Reject notification to HR
+      await sendNotification({
+        title: "Candidate Rejected",
+        message: `${candidate_name} has been moved to Rejected list.`,
+        recipientEmail: HR_mail,
+        type: "rejected",
+      });
+
+      // Notify HR
       await sendMail(
         HR_mail,
         `Candidate Rejected ❌ - ${candidate_name}`,
-        `Unfortunately, the candidate ${candidate_name} has been rejected.\n\nComments: ${comments || "No additional comments."}`
+        `Unfortunately, the candidate ${candidate_name} has been rejected.\n\nComments: ${
+          comments || "No additional comments."
+        }`
       );
     }
 
     // Update the approval status in Approvals table
     await approvalRequest.update({ approval_status });
-    console.log("updating with approval_status:", approval_status, typeof approval_status);
-    
+    console.log(
+      "updating with approval_status:",
+      approval_status,
+      typeof approval_status
+    );
 
     res.status(200).json({ message: `Candidate ${approval_status}` });
   } catch (error) {
@@ -105,7 +161,6 @@ router.put("/review-status/:email", async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 });
-
 
 //New Approval
 router.post("/newApproval", async (req, res) => {

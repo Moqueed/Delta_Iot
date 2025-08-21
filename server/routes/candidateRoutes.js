@@ -7,6 +7,7 @@ const Rejected = require("../models/Rejected");
 const { NewlyJoined } = require("../models/TotalData");
 const AssignedCandidate = require("../models/AssignedCandidate");
 const { Op } = require("sequelize");
+const sendNotification = require("../utils/sendNotification");
 
 // ✅ Add new candidate and conditionally sync to ActiveList
 router.post("/add-candidate", async (req, res) => {
@@ -111,6 +112,13 @@ router.post("/add-candidate", async (req, res) => {
         status_date,
         entry_date,
       });
+
+      await sendNotification({
+        recipientEmail: HR_mail,
+        title: "New Candidate Added",
+        message: `Candidate "${candidate_name}" has been added to the Active List for position "${position}" in department}.`,
+        type: "candidate",
+      })
     }
 
     res.status(201).json({
@@ -179,6 +187,32 @@ router.get("/by-hr/:email", async (req, res) => {
   } catch (error) {
     console.error("❌ Error fetching HR-specific candidates:", error);
     res.status(500).json({ message: "Server error" });
+  }
+});
+
+// ✅ DELETE Candidate by ID (and remove from ActiveList too)
+router.delete("/delete-candidate/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Find candidate
+    const candidate = await Candidate.findByPk(id);
+    if (!candidate) {
+      return res.status(404).json({ message: "Candidate not found" });
+    }
+
+    // Delete candidate
+    await candidate.destroy();
+
+    // Also remove from ActiveList if exists
+  //  await ActiveList.destroy({ where: { candidate_id: id } });
+
+    return res.status(200).json({
+      message: "Candidate deleted successfully (and removed from ActiveList)",
+    });
+  } catch (error) {
+    console.error("❌ Error deleting candidate:", error);
+    res.status(500).json({ message: "Internal Server Error" });
   }
 });
 

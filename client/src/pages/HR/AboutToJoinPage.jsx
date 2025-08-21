@@ -5,6 +5,7 @@ import DashboardHomeLink from "../../components/DashboardHomeLink";
 import { HomeOutlined, LogoutOutlined } from "@ant-design/icons";
 import { Link } from "react-router-dom";
 import { useHR } from "../../components/HRContext";
+import NotificationBell from "../../components/NotificationBell";
 
 
 const AboutToJoinPage = () => {
@@ -59,6 +60,7 @@ const AboutToJoinPage = () => {
         <h2>About to Join</h2>
 
         <div className="header-right">
+          <NotificationBell/>
           <span className="welcome-text">Welcome: {hrName}</span>
           <Button
             icon={<LogoutOutlined />}

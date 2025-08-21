@@ -58,7 +58,6 @@ export const requestReview = async (email, progressStatus, requestBy) => {
   }
 };
 
-
 //HR mail to manager
 export const notifyManager = async (candidateId, progressStatus) => {
   try {
@@ -67,9 +66,7 @@ export const notifyManager = async (candidateId, progressStatus) => {
       {
         candidate_id: candidateId,
         progress_status: progressStatus,
-        
       }
-      
     );
     message.success("Manager notified successfully");
     return response.data;
@@ -99,7 +96,6 @@ export const UpdateTotalMasterData = async (id, progressStatus) => {
     message.error(errorMsg);
   }
 };
-
 
 //About to Join
 export const UpdateAboutToJoin = async (id, progressStatus) => {
@@ -153,6 +149,22 @@ export const updateBufferData = async (id, progressStatus, statusReason) => {
   }
 };
 
+//Rejected Data
+export const updateRejectedCandidate = async (id,progress_status,rejection_reason) => {
+  try {
+    const response = await axiosInstance.put(
+      `/api/activelist/rejected-data/${id}`,
+      {
+        progress_status: progress_status?.toLowerCase(),
+        rejection_reason: rejection_reason || "Moved to rejected from Active List",
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("❌ Error updating rejected candidate:", error);
+    throw error;
+  }
+};
 
 //fetch candidates for HR DataTracker
 export const fetchFilteredCandidates = async (filters) => {
@@ -177,7 +189,9 @@ export const fetchFilteredCandidates = async (filters) => {
 
 export const deleteActiveCandidate = async (candidateId) => {
   try {
-    const response = await axiosInstance.delete(`/api/activelist/delete/${candidateId}`);
+    const response = await axiosInstance.delete(
+      `/api/activelist/delete/${candidateId}`
+    );
     return response.data;
   } catch (error) {
     console.error("❌ Error deleting candidate:", error);

@@ -6,6 +6,7 @@ import DashboardHomeLink from "../../components/DashboardHomeLink";
 import { HomeOutlined, LogoutOutlined } from "@ant-design/icons";
 import { Link } from "react-router-dom";
 import { useHR } from "../../components/HRContext";
+import NotificationBell from "../../components/NotificationBell";
 
 const { Title } = Typography;
 
@@ -90,6 +91,7 @@ const RejectedDataPage = () => {
         <h2>Rejected Candidates</h2>
 
         <div className="header-right">
+          <NotificationBell/>
           {hrName && hrName !== "HR" && (
             <span className="welcome-text">Welcome: {hrName}</span>
           )}

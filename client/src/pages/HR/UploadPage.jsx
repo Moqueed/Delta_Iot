@@ -5,6 +5,7 @@ import axiosInstance from "../../api";
 import DashboardHomeLink from "../../components/DashboardHomeLink";
 import { LogoutOutlined } from "@ant-design/icons";
 import { useHR } from "../../components/HRContext";
+import NotificationBell from "../../components/NotificationBell";
 
 const { Sider, Content } = Layout;
 
@@ -64,6 +65,7 @@ const UploadPage = () => {
         <h2>uploads</h2>
 
         <div className="header-right">
+          <NotificationBell/>
           <span className="welcome-text">Welcome: {hrName}</span>
           <Button
             icon={<LogoutOutlined />}

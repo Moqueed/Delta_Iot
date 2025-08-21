@@ -4,10 +4,10 @@ import axiosInstance from "../../api";
 import CandidateForm from "./CandidateForm";
 import "./ActiveList.css";
 import "./CandidateForm.css";
-import { HomeOutlined, LogoutOutlined } from "@ant-design/icons";
-import { Link } from "react-router-dom";
+import { LogoutOutlined } from "@ant-design/icons";
 import DashboardHomeLink from "../../components/DashboardHomeLink";
 import { useHR } from "../../components/HRContext";
+import NotificationBell from "../../components/NotificationBell";
 
 const ActiveList = () => {
   const [loading, setLoading] = useState(true);
@@ -64,6 +64,7 @@ const ActiveList = () => {
         <h2>Active List</h2>
 
         <div className="header-right">
+          <NotificationBell/>
           <span className="welcome-text">Welcome: {hrName}</span>
           <Button
             icon={<LogoutOutlined />}

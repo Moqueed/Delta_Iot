@@ -135,13 +135,24 @@ const Candidate = sequelize.define(
 //   }
 // });
 
-Candidate.hasMany(AssignedCandidate, { foreignKey: "candidate_id", as: "assignments" });
-
+// ✅ Define associations inside a function (index.js will call this)
 Candidate.associate = (models) => {
+  Candidate.hasMany(models.AssignedCandidate, {
+    foreignKey: "candidate_id",
+    as: "assignments",
+  });
+
   Candidate.hasMany(models.HRDataTracker, {
     foreignKey: "candidate_id",
     as: "TrackerEntries",
   });
+
+  Candidate.hasOne(models.ActiveList, {
+    foreignKey: "candidate_id",
+    onDelete: "CASCADE",
+  });
 };
+
+
 
 module.exports = Candidate;

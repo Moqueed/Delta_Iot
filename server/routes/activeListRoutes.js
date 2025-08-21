@@ -4,7 +4,6 @@ const ActiveList = require("../models/ActiveList");
 const Approval = require("../models/Approval");
 const Candidate = require("../models/Candidate");
 const HR = require("../models/HR");
-const HRDataTracker = require("../models/HRDataTracker");
 const Rejected = require("../models/Rejected");
 const nodemailer = require("nodemailer");
 const {
@@ -16,7 +15,7 @@ const {
 const sequelize = require("../config/database");
 const { removeCandidateFromAllExcept } = require("../utils/dataCleaner");
 const { Op, where } = require("sequelize");
-
+const sendNotification = require("../utils/sendNotification");
 
 // Mail setup
 const transporter = nodemailer.createTransport({
@@ -242,6 +241,14 @@ router.put("/request-review/:email", async (req, res) => {
     //   where: {candidate_email_id: candidate.candidate_email_id},
     // });
 
+    await sendNotification({
+      recipientEmail: process.env.EMAIL_ADMIN,
+      type: "approval",
+      title: "Review Request Submitted",
+      message: `${candidate.candidate_name} has been requested for review`,
+      type: "approval",
+    });
+
     //✅ Notify Admin via mail
     const adminMailOptions = {
       from: process.env.EMAIL_USER,
@@ -389,6 +396,14 @@ router.put("/total-master-data/:id", async (req, res) => {
         entry_date: activeRecord.entry_date || today,
       });
 
+      // 🔔 Send notification for new insert for TotalMaster
+      await sendNotification({
+        title: "Candidate Moved",
+        recipientEmail: activeRecord.HR_mail,
+        message: `Candidate ${activeRecord.candidate_name} moved to Total Master Data`,
+        type: "totalMaster",
+      });
+
       return res.status(200).json({
         message: "Progress status updated and data moved to Total Master Data",
       });
@@ -462,6 +477,14 @@ router.put("/about-to-join/:id", async (req, res) => {
         HR_mail: activeRecord.HR_mail,
       });
 
+      // 🔔 Send notification for new insert for AboutToJoin
+      await sendNotification({
+        title: "Candidate Moved",
+        recipientEmail: activeRecord.HR_mail,
+        message: `Candidate ${activeRecord.candidate_name} moved to About to Join `,
+        type: "aboutToJoin",
+      });
+
       return res.status(200).json({
         message: "Progress status updated and data moved to About to Join",
       });
@@ -533,6 +556,14 @@ router.put("/newly-joined/:id", async (req, res) => {
         joining_date: today,
         HR_name: activeRecord.HR_name,
         HR_mail: activeRecord.HR_mail,
+      });
+
+      // 🔔 Send notification for new insert for NewlyJoined
+      await sendNotification({
+        title: "Candidate Moved",
+        recipientEmail: activeRecord.HR_mail,
+        message: `Candidate ${activeRecord.candidate_name} moved to Newly Joined `,
+        type: "newlyJoined",
       });
 
       return res.status(200).json({
@@ -609,6 +640,14 @@ router.put("/buffer-data/:id", async (req, res) => {
         status_reason: status_reason,
       });
 
+       // 🔔 Send notification for new insert for BufferData
+      await sendNotification({
+        title: "Candidate Moved",
+        recipientEmail: activeRecord.HR_mail,
+        message: `Candidate ${activeRecord.candidate_name} moved to Buffer Data `,
+        type: "bufferData",
+      });
+
       return res.status(200).json({
         message: "Progress status updated and data moved to BufferData",
       });
@@ -622,6 +661,94 @@ router.put("/buffer-data/:id", async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 });
+
+// Progress statuses that mean rejection
+const rejectedStatuses = ["rejected", "declined offer", "no show", "withdrawn"];
+
+// 🔹 Move from ActiveList → Rejected
+router.put("/rejected-data/:id", async (req, res) => {
+  const { id } = req.params;
+  const { progress_status, rejection_reason } = req.body;
+
+  try {
+    // Find ActiveList record
+    const activeRecord = await ActiveList.findOne({ where: { candidate_id: id } }); 
+    if (!activeRecord) {
+      return res.status(404).json({ message: "ActiveList record not found" });
+    }
+
+    const normalizedStatus = progress_status?.toLowerCase();
+
+    if (rejectedStatuses.includes(normalizedStatus)) {
+      // Update ActiveList
+      await ActiveList.update(
+        { progress_status: normalizedStatus },
+        { where: { candidate_id: id } }
+      );
+
+      // Check if already in Rejected
+      const existingEntry = await Rejected.findOne({
+        where: { candidate_email_id: activeRecord.candidate_email_id },
+      });
+
+      if (existingEntry) {
+        await Rejected.update(
+          {
+            progress_status: normalizedStatus,
+            rejection_reason: rejection_reason || "Moved from Active List",
+            status_date: new Date(),
+          },
+          { where: { candidate_email_id: activeRecord.candidate_email_id } }
+        );
+
+        return res.status(200).json({
+          message: "Updated in both ActiveList and Rejected Data",
+        });
+      }
+
+      // Remove from other tables before inserting
+      await removeCandidateFromAllExcept(activeRecord.candidate_email_id, "Rejected");
+
+      // Insert new rejected entry
+      await Rejected.create({
+        candidate_id: activeRecord.candidate_id,
+        candidate_name: activeRecord.candidate_name,
+        candidate_email_id: activeRecord.candidate_email_id,
+        position: activeRecord.position,
+        department: activeRecord.department,
+        progress_status: normalizedStatus,
+        rejection_reason: rejection_reason || "Moved from Active List",
+        status_date: new Date(),
+        HR_name: activeRecord.HR_name,
+        HR_mail: activeRecord.HR_mail,
+      });
+
+      // Notification (non-blocking)
+      try {
+        await sendNotification({
+          title: "Candidate Rejected",
+          recipientEmail: activeRecord.HR_mail,
+          message: `Candidate ${activeRecord.candidate_name} moved to Rejected. Reason: ${rejection_reason || "Not specified"}`,
+          type: "rejected",
+        });
+      } catch (notifyErr) {
+        console.error("⚠️ Notification failed:", notifyErr.message);
+      }
+
+      return res.status(200).json({
+        message: "Progress status updated and moved to Rejected Data",
+      });
+    }
+
+    return res.status(200).json({
+      message: "Progress status not eligible for Rejected Data",
+    });
+  } catch (error) {
+    console.error("❌ Error updating RejectedData:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 
 //filter in HR tracker page
 router.get("/filter", async (req, res) => {
@@ -658,7 +785,6 @@ router.get("/filter", async (req, res) => {
     res.status(500).json({ message: "Server Error" });
   }
 });
-
 
 //Delete from activeList
 router.delete("/delete/:id", async (req, res) => {

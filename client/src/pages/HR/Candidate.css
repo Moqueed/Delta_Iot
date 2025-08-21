@@ -107,6 +107,11 @@ input[type="file"] {
   padding: 0 24px;
 }
 
+.form-actions {
+  display: flex;
+  gap: 10px; /* spacing between buttons */
+}
+
 /* Spinner Centering */
 .candidate-spinner {
   display: flex;

@@ -7,6 +7,7 @@ import "./HRVacancy.css";
 import DashboardHomeLink from "../../components/DashboardHomeLink";
 import axiosInstance from "../../api";
 import { useHR } from "../../components/HRContext";
+import NotificationBell from "../../components/NotificationBell";
 
 const HRVacancy = () => {
   const [vacancies, setVacancies] = useState([]);
@@ -148,6 +149,7 @@ const HRVacancy = () => {
           <h2 className="header-title">HR Vacancies</h2>
         </div>
         <div className="header-right">
+        <NotificationBell/>
            <span className="welcome-text">Welcome: {hrName}</span>
           <Button
             icon={<LogoutOutlined />}

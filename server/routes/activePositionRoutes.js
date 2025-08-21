@@ -1,17 +1,19 @@
 const express = require("express");
 const { ActivePosition } = require("../models");
 const sendPositionMail = require("../utils/emailHelper");
+const sendNotification = require("../utils/sendNotification");
 const router = express.Router();
 
-router.post('/send-position-mail', async (req, res) => {
+//Send Mail
+router.post("/send-position-mail", async (req, res) => {
   const { hrEmail, positionTitle, positionDescription } = req.body;
 
   try {
     await sendPositionMail(hrEmail, positionTitle, positionDescription);
-    res.status(200).json({ message: 'Email sent successfully!' });
+    res.status(200).json({ message: "Email sent successfully!" });
   } catch (error) {
-    console.error('Error sending mail:', error);
-    res.status(500).json({ error: 'Failed to send email.' });
+    console.error("Error sending mail:", error);
+    res.status(500).json({ error: "Failed to send email." });
   }
 });
 
@@ -31,8 +33,12 @@ router.post("/add-position", async (req, res) => {
     } = req.body;
 
     // Auto-convert string to array if needed
-    const formattedSkills = Array.isArray(skills) ? skills : skills.split(",").map((s) => s.trim()) || [];
-    const formattedHRs = Array.isArray(HRs) ? HRs : HRs.split(",").map((h) => h.trim()) || [];
+    const formattedSkills = Array.isArray(skills)
+      ? skills
+      : skills.split(",").map((s) => s.trim()) || [];
+    const formattedHRs = Array.isArray(HRs)
+      ? HRs
+      : HRs.split(",").map((h) => h.trim()) || [];
 
     // Ensure all fields are provided and arrays aren't empty
     if (
@@ -56,8 +62,18 @@ router.post("/add-position", async (req, res) => {
       minimum_experience,
       maximum_experience,
       job_description,
-      HRs: formattedHRs
+      HRs: formattedHRs,
     });
+
+    // 🔔 Send notification to each HR
+    for (const email of formattedHRs) {
+      await sendNotification({
+        recipientEmail: email,
+        title: "New Vacancy Assigned",
+        message: `A new vacancy "${position}" has been assigned to you in ${department}.`,
+        type: "vacancy",
+      });
+    }
 
     res.status(201).json(newPosition);
   } catch (error) {
@@ -65,7 +81,6 @@ router.post("/add-position", async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
-
 
 //get all active positions
 router.get("/get-position", async (req, res) => {
@@ -76,7 +91,6 @@ router.get("/get-position", async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
-
 
 //update Active position(Also updates HR vacancy)
 router.put("/update/:id", async (req, res) => {
@@ -91,7 +105,6 @@ router.put("/update/:id", async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
-
 
 // Delete Active Position (Also deletes HRVacancy)
 router.delete("/delete/:id", async (req, res) => {
