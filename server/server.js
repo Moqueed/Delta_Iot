@@ -18,12 +18,14 @@ const protectedHrRoutes = require("./routes/protectedRoutes/hrRoutes");
 const assignedCandidateRoutes = require("./routes/assignedCandidateRoutes");
 const notificationRoutes = require("./routes/notifications");
 const cors = require("cors");
+const { apiLimiter } = require("./middleware/rateLimiter");
 
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
 app.use(express.json());
+
 app.use(express.urlencoded({ extended: true }));
 app.use(cors());
 
@@ -31,6 +33,7 @@ app.get("/", (req, res) => {
   res.send("Server is Running! Welcome to Delta IoT API.");
 });
 
+app.use("/api/", apiLimiter);
 app.use("/api/positions", activePositionRoutes);
 app.use("/api/candidates", candidateRoutes);
 app.use("/api/hrvacancies", hrVacancyRoutes); // Keep this
