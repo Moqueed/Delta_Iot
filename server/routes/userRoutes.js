@@ -4,9 +4,7 @@ const User = require("../models/User");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const Joi = require("joi");
-const sanitize = require("mongo-sanitize");
 const { loginLimiter } = require("../middleware/rateLimiter");
-
 
 // ✅ Allowed roles
 const allowedRoles = ["Admin", "HR"];
@@ -28,11 +26,8 @@ const loginSchema = Joi.object({
 // 🎯 Register User (Admin or HR)
 router.post("/register", async (req, res) => {
   try {
-    // 🛡️ Sanitize input
-    const cleanData = sanitize(req.body);
-
     // 🛡️ Validate input
-    const { error, value } = registerSchema.validate(cleanData);
+    const { error, value } = registerSchema.validate(req.body);
     if (error) return res.status(400).json({ message: error.details[0].message });
 
     const { name, email, password, role } = value;
@@ -70,11 +65,8 @@ router.post("/register", async (req, res) => {
 // 🔑 Login User (with rate limiting)
 router.post("/login", loginLimiter, async (req, res) => {
   try {
-    // 🛡️ Sanitize input
-    const cleanData = sanitize(req.body);
-
     // 🛡️ Validate input
-    const { error, value } = loginSchema.validate(cleanData);
+    const { error, value } = loginSchema.validate(req.body);
     if (error) return res.status(400).json({ message: error.details[0].message });
 
     const { email, password, role } = value;
